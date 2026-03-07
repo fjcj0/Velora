@@ -3,7 +3,7 @@ import express from "express";
 import morgan from "morgan";
 import helmet from "helmet";
 import authRoutes from "./routes/auth.route.js";
-import connectToDB from "./config/contect.js";
+import connectToDB from "./config/connect.js";
 dotenv.config();
 const app = express();
 app.use(express.json());

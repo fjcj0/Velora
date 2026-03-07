@@ -1,5 +1,5 @@
 import mongoose from "mongoose";
-import Joi, { func } from "joi";
+import Joi from "joi";
 import jwt from "jsonwebtoken";
 const UserSchema = new mongoose.Schema(
   {
@@ -43,7 +43,6 @@ const UserSchema = new mongoose.Schema(
   },
   { timestamps: true },
 );
-
 export const validateLoginUser = (obj) => {
   const Schema = Joi.object({
     email: Joi.string().min(5).max(100).required().email,
@@ -51,7 +50,6 @@ export const validateLoginUser = (obj) => {
   });
   return Schema.validate(obj);
 };
-
 export const validationRegister = (obj) => {
   const Schema = Joi.Schema({
     useremail: Joi.string().min(5).max(100),
@@ -60,7 +58,6 @@ export const validationRegister = (obj) => {
   });
   return Schema.validate(obj);
 };
-
 export const validationUpdate = (obj) => {
   const Schema = Joi.Schema({
     useremail: Joi.string().min(5).max(100),
@@ -69,7 +66,6 @@ export const validationUpdate = (obj) => {
   });
   return Schema.validate(obj);
 };
-
 UserSchema.methods.generateToken = function () {
   const token = jwt.sign(
     { id: this._id, isAdmin: this.admin },

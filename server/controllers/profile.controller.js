@@ -1,12 +1,9 @@
 import bcrypt from "bcryptjs";
 import { User, validationUpdate } from "../Models/user";
-
 export const getAllUser = async (req, res) => {
   const user = await User.find().select("-password");
-
   return res.status(200).json(user);
 };
-
 export const getSingleUser = async (req, res) => {
   const user = await User.findById(req.params.id).select("-password");
   if (!user) {
@@ -14,7 +11,6 @@ export const getSingleUser = async (req, res) => {
   }
   return res.status(200).json(user);
 };
-
 export const UpdateProfile = async (req, res) => {
   const { error } = validationUpdate(req.body);
   if (error) {
@@ -38,6 +34,5 @@ export const UpdateProfile = async (req, res) => {
     },
     { new: true },
   ).select("-password");
-
   return res.status(200).json(updateUser);
 };

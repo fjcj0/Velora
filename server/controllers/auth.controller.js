@@ -1,7 +1,5 @@
 import { validateLoginUser, User, validationRegister } from "../Models/user.js";
 import bcrypt from "bcryptjs";
-import jwt from "jsonwebtoken";
-
 export const login = async (req, res) => {
   const { error } = validateLoginUser(req.body);
   if (error) {
@@ -12,7 +10,6 @@ export const login = async (req, res) => {
   if (!user) {
     return res.status(404).json({ message: "user or password vailed" });
   }
-
   const isPassWordMatched = await bcrypt.compare(req.password, user.password);
   if (!isPassWordMatched) {
     return res.status(200).json({ message: "user or password not vailed" });
@@ -20,7 +17,6 @@ export const login = async (req, res) => {
   const token = user.generateToken();
   res.status(200).json(token);
 };
-
 export const register = async (req, res) => {
   const { error } = validationRegister(req.body);
   if (error) {
@@ -31,7 +27,6 @@ export const register = async (req, res) => {
   if (user) {
     return res.status(400).json({ message: "user already used" });
   }
-
   const Hashedpassword = await bcrypt.hash(password, 10);
   const newUser = new User({
     email,

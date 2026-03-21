@@ -7,7 +7,7 @@ import helmet from "helmet";
 import cors from "cors";
 import cookieParser from "cookie-parser";
 import authRoutes from "./routes/auth.route.js";
-import connectToDB from "./config/connect.js";
+import connectToDB from "./config/connect.config.js";
 import { browserOnly, csrfProtection, rateLimiter, speedLimiter, xss_protection } from "./middleware/server.guard.js";
 import { csrf } from "./controllers/csrf.controller.js";
 const app = express();

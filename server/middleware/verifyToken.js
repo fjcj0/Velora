@@ -1,37 +1,29 @@
-import jwt from "jsonwebtoken";
-export const verficationToken = async (req, res, next) => {
-  const authtoken = req.headers.authorization;
-  if (authtoken) {
-    const token = authtoken.split(" ")[1];
+import 'dotenv/config';
+import jwt from 'jsonwebtoken';
+import { User } from '../models/user.js';
+export const verifyToken = async (request, response, next) => {
+  try {
+    const token = request.cookies.token;
+    if (!token) {
+      return response.status(401).json({
+        success: false,
+        message: 'Unauthorized - No token provided',
+      });
+    }
+    const decoded = jwt.verify(token, process.env.JWT_SECRET);
+    const user = await User.findById(decoded.id);
+    if (!user) {
+      return response.status(401).json({
+        success: false,
+        message: 'Unauthorized - User not found',
+      });
+    }
+    request.user = user;
+    next();
+  } catch (error) {
+    return response.status(401).json({
+      success: false,
+      message: 'Unauthorized - Invalid token',
+    });
   }
-  const payload = jwt.verify(token, process.env.JWT_SECRET);
-  req.user = payload;
-  next();
 };
-export function verifyTokenAndAdmin(req, res, next) {
-  verficationToken(req, res, () => {
-    if (req.user.isAdmin) {
-      next();
-    } else {
-      return res.status(403).json({ message: "not allowed ,only  admin" });
-    }
-  });
-}
-export function verifyTokenAndOnlyUser(req, res, next) {
-  verifyToken(req, res, () => {
-    if (req.user.id === req.params.id) {
-      next();
-    } else {
-      return res.status(403).json({ message: "not allowed ,only  admin" });
-    }
-  });
-}
-export function verifyTokenAndAuthorization(req, res, next) {
-  verifyToken(req, res, () => {
-    if (req.user.id === req.params.id || req.user.isAdmin) {
-      next();
-    } else {
-      return res.status(403).json({ message: "not allowed ,only  admin" });
-    }
-  });
-}

@@ -20,7 +20,7 @@ export const verifyUser = async (request, response, next) => {
             });
         }
         const existingUser = await User.findById(decoded.user._id);
-        if (!existingUser) {
+        if (!existingUser || !existingUser.isVerified) {
             return response.status(401).json({
                 success: false,
                 error: '401 Unauthorized user'

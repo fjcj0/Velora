@@ -13,6 +13,7 @@
   "description": "",
   "dependencies": {
     "bcryptjs": "^3.0.3",
+    "chalk": "^5.6.2",
     "cors": "^2.8.6",
     "cron": "^4.4.0",
     "dotenv": "^17.3.1",

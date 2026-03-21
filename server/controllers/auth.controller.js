@@ -34,10 +34,25 @@ export const login = async (request, response) => {
     if (!isPassWordMatched) {
       return response.status(400).json({ message: "user or password invalid" });
     }
-    await generateTokenAndSetCookie(response, user);
-    return response.status(200).json({
+    if (user.isVerified) {
+      await generateTokenAndSetCookie(response, user);
+      return response.status(200).json({
+        success: true,
+        user: { ...user._doc, password: undefined }
+      });
+    }
+    const verificationToken = crypto.randomBytes(32).toString("hex");
+    const verficationCode = Math.floor(100000 + Math.random() * 900000).toString();
+    const expiredAt = new Date(Date.now() + 60 * 60 * 1000);
+    const resendAfter = new Date(Date.now() + 60 * 1000);
+    user.verificationCode = verficationCode;
+    user.verificationToken = verificationToken;
+    user.expiredAt = expiredAt;
+    user.resendAfter = resendAfter;
+    await user.save();
+    return response.status(201).json({
       success: true,
-      user: { ...user._doc, password: undefined }
+      messag: `The code has been sent to your email, Check it`
     });
   } catch (error) {
     return response.status(500).json({

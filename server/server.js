@@ -17,13 +17,13 @@ app.use(express.urlencoded({ extended: true, limit: "10mb" }));
 app.use(browserOnly);
 app.use(rateLimiter);
 app.use(speedLimiter);
-app.use((req, res, next) => {
-    if (req.path === "/test" || req.path === "/csrf-token") {
+app.use((request, response, next) => {
+    if (request.path === "/test" || request.path === "/csrf-token") {
         return next();
     }
-    return csrfProtection(req, res, next);
+    return csrfProtection(request, response, next);
 });
-morgan.token('client-ip', (req) => req.ip || req.connection.remoteAddress);
+morgan.token('client-ip', (request) => request.ip || request.connection.remoteAddress);
 app.use(morgan('➜ :method :url :status :response-time ms - :res[content-length] - :client-ip'));
 app.use(helmet());
 app.use(cors({

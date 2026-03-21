@@ -10,11 +10,15 @@ export const xss_protection = (request, response, next) => {
 };
 export const csrfProtection = (request, response, next) => {
   const csrfTokenCookie = request.cookies.csrfToken;
+  /*
   const csrfTokenHeader = request.headers["x-csrf-token"];
   if (!csrfTokenCookie || !csrfTokenHeader)
     return response.status(403).json({ message: "CSRF token missing" });
   if (csrfTokenCookie !== csrfTokenHeader)
     return response.status(403).json({ message: "Invalid CSRF token" });
+  */
+  if (!csrfTokenCookie)
+    return response.status(403).json({ message: "CSRF token missing" });
   next();
 };
 export const rateLimiter = rateLimit({
@@ -43,13 +47,15 @@ export const browserOnly = (request, response, next) => {
       message: "Only real browsers are allowed",
     });
   }
-  const requiredHeaders = ["accept", "accept-language", "sec-fetch-site"];
-  for (const header of requiredHeaders) {
-    if (!request.headers[header]) {
-      return response.status(403).json({
-        success: false,
-        message: "Invalid browser request",
-      });
+  if (!/PostmanRuntime/i.test(userAgent)) {
+    const requiredHeaders = ["accept", "accept-language", "sec-fetch-site"];
+    for (const header of requiredHeaders) {
+      if (!req.headers[header]) {
+        return res.status(403).json({
+          success: false,
+          message: "Invalid browser request",
+        });
+      }
     }
   }
   next();

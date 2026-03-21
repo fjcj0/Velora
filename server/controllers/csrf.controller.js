@@ -1,3 +1,4 @@
+import generateCsrfToken from '../utils/generateCsrfToken.js';
 export const csrf = async (request, response) => {
     const csrfToken = generateCsrfToken();
     response.cookie("csrfToken", csrfToken, {

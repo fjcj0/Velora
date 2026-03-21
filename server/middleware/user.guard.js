@@ -1,7 +1,7 @@
 import jwt from 'jsonwebtoken';
 import { User } from '../models/user.model.js';
 const getTokenData = (request) => {
-    const authHeader = request.headers['authorization'];
+    const authHeader = xss(request.headers['authorization']);
     const token = request.cookies?.token || (authHeader && authHeader.split(' ')[1]);
     if (!token) return null;
     try {

@@ -1,6 +1,7 @@
 import { User } from "../models/user.model.js";
 import bcrypt from "bcryptjs";
 import { generateTokenAndSetCookie } from "../utils/generateTokenAndSetCookie.js";
+import crypto from 'crypto';
 export const checkAuth = async (request, response) => {
   try {
     if (request.user) {
@@ -63,8 +64,8 @@ export const login = async (request, response) => {
 };
 export const register = async (request, response) => {
   try {
-    const { email, password, username } = request.body;
-    if (!email || !password || !username) {
+    const { name,email, password, username } = request.body;
+    if (!email || !password || !username || !name) {
       return response.status(400).json({ message: "all fields are required" });
     }
     if (password.length < 6) {
@@ -79,7 +80,7 @@ export const register = async (request, response) => {
     const verficationCode = Math.floor(100000 + Math.random() * 900000).toString();
     const expiredAt = new Date(Date.now() + 60 * 60 * 1000);
     const resendAfter = new Date(Date.now() + 60 * 1000);
-    const newUser = new User({ email, password: hashedPassword, username,verficationCode,verificationToken,expiredAt,resendAfter });
+    const newUser = new User({ name,email, password: hashedPassword, username,verficationCode,verificationToken,expiredAt,resendAfter });
     await newUser.save(); 
     return response.status(201).json({
       success: true,

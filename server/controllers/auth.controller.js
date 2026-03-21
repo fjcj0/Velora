@@ -25,8 +25,10 @@ export const login = async (request, response) => {
       return response.status(400).json({ message: "user or password invalid" });
     }
   } catch (error) {
-    console.error(error);
-    response.status(500).json({ message: "Internal Server Error" });
+    return response.status(500).json({
+      success: false,
+      error: `Internal Server Error: ${error instanceof Error ? error.message : error}`
+    });
   }
 };
 export const register = async (request, response) => {
@@ -56,7 +58,9 @@ export const register = async (request, response) => {
       token,
     });
   } catch (error) {
-    console.error(error);
-    response.status(500).json({ message: "Internal Server Error" });
+    return response.status(500).json({
+      success: false,
+      error: `Internal Server Error: ${error instanceof Error ? error.message : error}`
+    });
   }
 };

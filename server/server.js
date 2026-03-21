@@ -5,6 +5,7 @@ import express from "express";
 import morgan from "morgan";
 import helmet from "helmet";
 import authRoutes from "./routes/auth.route.js";
+import cookieParser from 'cookie-parser';
 import connectToDB from "./config/connect.js";
 const app = express();
 app.use(express.json());

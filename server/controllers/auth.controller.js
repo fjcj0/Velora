@@ -37,10 +37,7 @@ export const login = async (request, response) => {
     await generateTokenAndSetCookie(response, user);
     return response.status(200).json({
       success: true,
-      user: {
-        ...user,
-        password: undefined
-      },
+      user: { ...user._doc, password: undefined }
     });
   } catch (error) {
     return response.status(500).json({
@@ -63,19 +60,12 @@ export const register = async (request, response) => {
       return response.status(400).json({ message: "user already exists" });
     }
     const hashedPassword = await bcrypt.hash(password, 10);
-    const newUser = new User({
-      email,
-      password: hashedPassword,
-      username
-    });
+    const newUser = new User({ email, password: hashedPassword, username });
+    await newUser.save(); 
     await generateTokenAndSetCookie(response, newUser);
-    await newUser.save();
     return response.status(201).json({
       success: true,
-      newUser: {
-        ...newUser,
-         password: undefined
-      }
+      newUser: { ...newUser._doc, password: undefined }
     });
   } catch (error) {
     return response.status(500).json({

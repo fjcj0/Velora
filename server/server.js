@@ -17,23 +17,20 @@ app.use(morgan("dev"));
 app.use(helmet());
 app.use(cors({
   origin: 'http://localhost:5173',
-  methods: ['GET','POST','PUT','DELETE']
+  methods: ['GET', 'POST', 'PUT', 'DELETE'],
+  credentials: true
 }));
 app.use(xss_protection);
 app.use("/auth", authRoutes);
 app.get("/test", (request, response) => {
-  return response.status(200).json({
-    success: true,
-  });
+  return response.status(200).json({ success: true });
 });
 connectToDB()
-.then(() => {
-  app.listen(process.env.PORT, () => {
-    console.log(chalk.green('✓'), chalk.blueBright.bold(`Server running at: http://localhost:${process.env.PORT}`));
-    console.log(chalk.yellow('★'), chalk.cyan(process.env.NODE_ENV == 'development' ? 'Ready for development' : 'Ready for using'));
-    console.log(chalk.yellow('DDoS protection activated for protected routes only'));
-  });
-})
-.catch((error) => {
-  console.log(chalk.red(`${error}`));
-});
+  .then(() => {
+    app.listen(process.env.PORT, () => {
+      console.log(chalk.green('✓'), chalk.blueBright.bold(`Server running at: http://localhost:${process.env.PORT}`));
+      console.log(chalk.yellow('★'), chalk.cyan(process.env.NODE_ENV == 'development' ? 'Ready for development' : 'Ready for using'));
+      console.log(chalk.yellow('DDoS protection activated for protected routes only'));
+    });
+  })
+  .catch((error) => console.log(chalk.red(`${error}`)));

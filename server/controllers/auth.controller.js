@@ -1,8 +1,18 @@
 import { User } from "../models/user.model.js";
 import bcrypt from "bcryptjs";
+import { generateTokenAndSetCookie } from "../utils/generateTokenAndSetCookie.js";
 export const checkAuth = async (request, response) => {
   try {
-
+    if (request.user) {
+      return response.status(200).json({
+        success: true,
+        user: request.user
+      });
+    }
+    return response.status(401).json({
+      success: false,
+      error: '401 unauthorized user'
+    });
   } catch (error) {
     return response.status(500).json({
       success: false,
@@ -24,6 +34,14 @@ export const login = async (request, response) => {
     if (!isPassWordMatched) {
       return response.status(400).json({ message: "user or password invalid" });
     }
+    await generateTokenAndSetCookie(response, user);
+    return response.status(200).json({
+      success: true,
+      user: {
+        ...user,
+        password: undefined
+      },
+    });
   } catch (error) {
     return response.status(500).json({
       success: false,
@@ -48,14 +66,16 @@ export const register = async (request, response) => {
     const newUser = new User({
       email,
       password: hashedPassword,
-      username,
+      username
     });
+    await generateTokenAndSetCookie(response, newUser);
     await newUser.save();
-    const { password: removedPassword, ...userWithoutPassword } = newUser._doc;
-    const token = newUser.generateToken();
     return response.status(201).json({
-      user: userWithoutPassword,
-      token,
+      success: true,
+      newUser: {
+        ...newUser,
+         password: undefined
+      }
     });
   } catch (error) {
     return response.status(500).json({

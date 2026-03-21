@@ -1,5 +1,5 @@
 import mongoose from "mongoose";
-const UserSchema = new mongoose.Schema(
+const userSchema = new mongoose.Schema(
   {
     username: {
       type: String,
@@ -7,6 +7,7 @@ const UserSchema = new mongoose.Schema(
       trim: true,
       minlength: 2,
       maxlength: 100,
+      unique: true,
     },
     email: {
       type: String,
@@ -14,7 +15,7 @@ const UserSchema = new mongoose.Schema(
       trim: true,
       minlength: 5,
       maxlength: 100,
-      uniqeu: true,
+      unique: true,
     },
     password: {
       type: String,
@@ -22,23 +23,30 @@ const UserSchema = new mongoose.Schema(
       trim: true,
     },
     profilePhoto: {
-      type: Object,
-      default: {
-        url: "",
-        publicId: null,
-      },
+      type: String,
+      default: "/user.png"
     },
-    bio: String,
+    bio: {
+      type: String,
+      length: 100,
+    },
     isAdmin: {
       type: Boolean,
       default: false,
     },
-    verficationToken: String,
-    verficationCode: Number,
+    verificationToken: String,
+    verificationCode: {
+      type: String,
+      minlength: 6,
+      maxlength: 6,
+    },
     expiredAt: Date,
     resendAfter: Date,
-    isVerified: Boolean,
+    isVerified: {
+      type: Boolean,
+      default: false,
+    },
   },
-  { timestamps: true },
+  { timestamps: true }
 );
-export const User = mongoose.model("User", UserSchema);
+export const User = mongoose.model("User", userSchema);

@@ -60,12 +60,15 @@ export const register = async (request, response) => {
       return response.status(400).json({ message: "user already exists" });
     }
     const hashedPassword = await bcrypt.hash(password, 10);
-    const newUser = new User({ email, password: hashedPassword, username });
+    const verificationToken = crypto.randomBytes(32).toString("hex");
+    const verficationCode = Math.floor(100000 + Math.random() * 900000).toString();
+    const expiredAt = new Date(Date.now() + 60 * 60 * 1000);
+    const resendAfter = new Date(Date.now() + 60 * 1000);
+    const newUser = new User({ email, password: hashedPassword, username,verficationCode,verificationToken,expiredAt,resendAfter });
     await newUser.save(); 
-    await generateTokenAndSetCookie(response, newUser);
     return response.status(201).json({
       success: true,
-      newUser: { ...newUser._doc, password: undefined }
+      messag: `The code has been sent to your email, Check it`
     });
   } catch (error) {
     return response.status(500).json({

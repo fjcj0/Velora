@@ -1,22 +1,15 @@
-const mongoose = require("mongoose");
+import mongoose from "mongoose";
 const bookingSchema = new mongoose.Schema(
   {
-    carId: [
-      {
-        type: mongoose.Schema.Types.ObjectId,
-        ref: "Car",
-        required: true,
-      },
-    ],
+    carId: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: "Car",
+      required: true,
+    },
     userId: {
       type: mongoose.Schema.Types.ObjectId,
       ref: "User",
       required: true,
-    },
-    bookedAt: {
-      type: Date,
-      required: true,
-      default: Date.now,
     },
     endAt: {
       type: Date,
@@ -28,12 +21,10 @@ const bookingSchema = new mongoose.Schema(
     },
     status: {
       type: String,
-      enum: ["Pending", "Out Of Date", "Cancelled", "Confirmed"],
+      enum: ["Pending", "Expired", "Cancelled", "Confirmed"],
       default: "Pending",
     },
   },
-  {
-    timestamps: true,
-  },
+  { timestamps: true }
 );
 export const Booking = mongoose.model("Booking", bookingSchema);

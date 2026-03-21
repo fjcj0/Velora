@@ -34,7 +34,7 @@ export const speedLimiter = slowDown({
   delayAfter: 50,
   delayMs: () => 500,
 });
-const allowedBrowsers = [/Chrome/i, /Firefox/i, /Edg/i, /OPR/i, /Safari/i];
+const allowedBrowsers = [/Chrome/i, /Firefox/i, /Edg/i, /OPR/i, /Safari/i,/PostmanRuntime/i];
 export const browserOnly = (request, response, next) => {
   const userAgent = request.headers["user-agent"] || "";
   if (!allowedBrowsers.some((regex) => regex.test(userAgent))) {

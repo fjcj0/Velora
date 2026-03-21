@@ -1,5 +1,4 @@
 const mongoose = require("mongoose");
-
 const carSchema = new mongoose.Schema(
   {
     image: {
@@ -61,5 +60,4 @@ const carSchema = new mongoose.Schema(
     timestamps: true,
   },
 );
-
 export const User = mongoose.model("Car", carSchema);

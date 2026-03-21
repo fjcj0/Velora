@@ -36,5 +36,4 @@ const bookingSchema = new mongoose.Schema(
     timestamps: true,
   },
 );
-
 export const bookingCar = mongoose.model("Booking", bookingSchema);

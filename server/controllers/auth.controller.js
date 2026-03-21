@@ -1,5 +1,15 @@
-import { User } from "../Models/user.js";
+import { User } from "../models/user.js";
 import bcrypt from "bcryptjs";
+export const checkAuth = async (req, res) => {
+  try {
+    
+  } catch (error) {
+    return res.status(500).json({
+      success: false,
+      error: `Internal Server Error: ${error instanceof Error ? error.message : error}`
+    });
+  }
+};
 export const login = async (req, res) => {
   try {
     const { email, password } = req.body;

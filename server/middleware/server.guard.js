@@ -1,4 +1,4 @@
-import xss from 'xss';
+import xss from "xss";
 import rateLimit, { ipKeyGenerator } from "express-rate-limit";
 import slowDown from "express-slow-down";
 export const xss_protection = (request, response, next) => {
@@ -12,13 +12,16 @@ export const csrfProtection = (request, response, next) => {
   const csrfTokenCookie = request.cookies.csrfToken;
   /*
   const csrfTokenHeader = xss(request.headers["x-csrf-token"]);
-  if (!csrfTokenCookie || !csrfTokenHeader)
+  if (!csrfTokenCookie || !csrfTokenHeader) {
     return response.status(403).json({ message: "CSRF token missing" });
-  if (csrfTokenCookie !== csrfTokenHeader)
+  }
+  if (csrfTokenCookie !== csrfTokenHeader) {
     return response.status(403).json({ message: "Invalid CSRF token" });
+  }
   */
-  if (!csrfTokenCookie)
+  if (!csrfTokenCookie) {
     return response.status(403).json({ message: "CSRF token missing" });
+  }
   next();
 };
 export const rateLimiter = rateLimit({
@@ -38,7 +41,7 @@ export const speedLimiter = slowDown({
   delayAfter: 50,
   delayMs: () => 500,
 });
-const allowedBrowsers = [/Chrome/i, /Firefox/i, /Edg/i, /OPR/i, /Safari/i,/PostmanRuntime/i];
+const allowedBrowsers = [/Chrome/i, /Firefox/i, /Edg/i, /OPR/i, /Safari/i, /PostmanRuntime/i];
 export const browserOnly = (request, response, next) => {
   const userAgent = xss(request.headers["user-agent"] || "");
   if (!allowedBrowsers.some((regex) => regex.test(userAgent))) {
@@ -50,8 +53,8 @@ export const browserOnly = (request, response, next) => {
   if (!/PostmanRuntime/i.test(userAgent)) {
     const requiredHeaders = ["accept", "accept-language", "sec-fetch-site"];
     for (const header of requiredHeaders) {
-      if (!xss(req.headers[header])) {
-        return res.status(403).json({
+      if (!xss(request.headers[header])) { 
+        return response.status(403).json({
           success: false,
           message: "Invalid browser request",
         });

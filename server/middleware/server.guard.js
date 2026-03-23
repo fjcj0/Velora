@@ -1,11 +1,12 @@
-import xss from 'xss';
+import xss from "xss";
 import rateLimit, { ipKeyGenerator } from "express-rate-limit";
 import slowDown from "express-slow-down";
 export const xss_protection = (request, response, next) => {
   const clean = (value) => (typeof value === "string" ? xss(value) : value);
   for (let key in request.query) request.query[key] = clean(request.query[key]);
   for (let key in request.body) request.body[key] = clean(request.body[key]);
-  for (let key in request.params) request.params[key] = clean(request.params[key]);
+  for (let key in request.params)
+    request.params[key] = clean(request.params[key]);
   next();
 };
 export const csrfProtection = (request, response, next) => {
@@ -38,7 +39,14 @@ export const speedLimiter = slowDown({
   delayAfter: 50,
   delayMs: () => 500,
 });
-const allowedBrowsers = [/Chrome/i, /Firefox/i, /Edg/i, /OPR/i, /Safari/i,/PostmanRuntime/i];
+const allowedBrowsers = [
+  /Chrome/i,
+  /Firefox/i,
+  /Edg/i,
+  /OPR/i,
+  /Safari/i,
+  /PostmanRuntime/i,
+];
 export const browserOnly = (request, response, next) => {
   const userAgent = xss(request.headers["user-agent"] || "");
   if (!allowedBrowsers.some((regex) => regex.test(userAgent))) {

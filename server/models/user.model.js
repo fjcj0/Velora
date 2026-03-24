@@ -5,7 +5,7 @@ const userSchema = new mongoose.Schema(
       type: String,
       required: true,
       minlength: 4,
-      maxlength: 20
+      maxlength: 20,
     },
     username: {
       type: String,
@@ -26,15 +26,14 @@ const userSchema = new mongoose.Schema(
     password: {
       type: String,
       required: true,
-      trim: true,
     },
     profilePhoto: {
       type: String,
-      default: "/user.png"
+      default: "/user.png",
     },
     bio: {
       type: String,
-      length: 100,
+      maxlength: 100,
     },
     isAdmin: {
       type: Boolean,

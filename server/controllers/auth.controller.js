@@ -1,6 +1,6 @@
 import { User } from "../models/user.model.js";
 import bcrypt from "bcryptjs";
-import { generateTokenAndSetCookie } from "../utils/generateTokenAndSetCookie.js";
+import { generateTokenAndSetCookie } from "../utils/generateTokenAndSetCookie.utils.js";
 import crypto from "crypto";
 import { sendVerificationEmail, sendWelcomeEmail } from "../email/email.js";
 export const checkAuth = async (request, response) => {

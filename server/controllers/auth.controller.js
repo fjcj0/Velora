@@ -205,12 +205,10 @@ export const resendCode = async (request, response) => {
     if (user.resendAfter && user.resendAfter.getTime() > Date.now()) {
       return response.status(400).json({ success: false, error: "Wait 60 seconds" });
     }
-    const newVerificationToken = crypto.randomBytes(32).toString("hex");
     const verificationCode = Math.floor(
       100000 + Math.random() * 900000
     ).toString();
     user.resendAfter = new Date(Date.now() + 60 * 1000);
-    user.verificationToken = newVerificationToken;
     user.expiredAt = new Date(Date.now() + 60 * 60 * 1000);
     user.verificationCode = verificationCode;
     await user.save();

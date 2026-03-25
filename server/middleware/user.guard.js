@@ -27,7 +27,8 @@ export const verifyUser = async (request, response, next) => {
                 error: '401 Unauthorized user'
             });
         }
-        request.user = { ...existingUser._doc, password: undefined };
+        existingUser.isAdmin = existingUser.isAdmin ? existingUser.isAdmin : undefined;
+        request.user = { ...existingUser._doc, password: undefined,verificationToken: undefined,verificationCode: undefined,expiredAt: undefined,resendAfter: undefined,createdAt: undefined,updatedAt: undefined,__v: undefined };
         next();
     } catch (error) {
         return response.status(500).json({

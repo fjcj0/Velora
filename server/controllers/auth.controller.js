@@ -6,11 +6,9 @@ import { sendVerificationEmail, sendWelcomeEmail } from "../email/email.js";
 export const checkAuth = async (request, response) => {
   try {
     if (request.user) {
-      const { password, verificationToken, verificationCode, ...safeUser } =
-        request.user._doc;
       return response.status(200).json({
         success: true,
-        user: safeUser,
+        user: request.user,
       });
     }
     return response.status(401).json({

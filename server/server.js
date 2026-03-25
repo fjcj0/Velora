@@ -11,6 +11,15 @@ import connectToDB from "./config/connect.config.js";
 import { browserOnly, csrfProtection, rateLimiter, speedLimiter, xss_protection } from "./middleware/server.guard.js";
 import { csrf } from "./controllers/csrf.controller.js";
 import { preventDuplicateWrites } from "./middleware/tokenbucket.guard.js";
+import { connectToRedis } from "./config/redis.config.js";
+import { get } from "./utils/redis.utils.js";
+(async () => {
+  try {
+    await connectToRedis();       
+  } catch (error) {
+    console.error("Redis operation failed:", error);
+  }
+})();
 const app = express();
 app.use(cookieParser(process.env.COOKIE_SECRET));
 app.use(express.json({ limit: "10mb" }));
@@ -42,9 +51,9 @@ app.get("/csrf-token", csrf);
 connectToDB()
     .then(() => {
         app.listen(process.env.PORT, () => {
-            console.log(chalk.green('✓'), chalk.blueBright.bold(`Server running at: http://localhost:${process.env.PORT}`));
-            console.log(chalk.yellow('★'), chalk.cyan(process.env.NODE_ENV === 'development' ? 'Ready for development' : 'Ready for production'));
-            console.log(chalk.yellow('DDoS protection activated for protected routes only'));
+            console.log(chalk.blueBright.bold('✓'), chalk.blueBright.bold(`Server running at: http://localhost:${process.env.PORT}`));
+            console.log(chalk.cyan('★'), chalk.cyan(process.env.NODE_ENV === 'development' ? 'Ready for development' : 'Ready for production'));
+            console.log(chalk.yellow('► DDoS protection activated for protected routes only'));
         });
     })
     .catch((error) => console.log(chalk.red(`${error}`)));

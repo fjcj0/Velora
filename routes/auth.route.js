@@ -1,0 +1,11 @@
+import express from "express";
+import { checkAuth, checkCode, checkPage, login, register, resendCode } from "../controllers/auth.controller.js"; 
+import { blockUser, verifyUser } from "../middleware/user.guard.js";
+const router = express.Router();
+router.post("/login",blockUser,login);
+router.post("/register",blockUser,register);
+router.get("/check", verifyUser, checkAuth);
+router.get("/check-page/:verificationToken", blockUser, checkPage);
+router.post("/resend-code", blockUser, resendCode);
+router.post("/check-code", blockUser, checkCode);
+export default router;

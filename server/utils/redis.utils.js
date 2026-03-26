@@ -1,7 +1,8 @@
 import { client } from "../config/redis.config.js";
 export const create = async (key, value, ttl = 60) => {
   try {
-    const storeValue = typeof value === "object" ? JSON.stringify(value) : value;
+    const storeValue =
+      typeof value === "object" ? JSON.stringify(value) : value;
     await client.set(key, storeValue, { EX: ttl });
   } catch (error) {
     throw error;
@@ -25,5 +26,28 @@ export const deleteRedis = async (key) => {
     await client.del(key);
   } catch (error) {
     throw error;
+  }
+};
+
+export const checkRedis = async (key) => {
+  try {
+    const cached = await client.get(key);
+
+    if (cached) {
+      return JSON.parse(cached);
+    }
+
+    const existingUser = await User.findById(key);
+
+    if (!existingUser) return null;
+
+    await client.set(key, JSON.stringify(existingUser), {
+      EX: 60,
+    });
+
+    return existingUser;
+  } catch (error) {
+    console.log(error);
+    return null;
   }
 };

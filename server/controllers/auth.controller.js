@@ -30,15 +30,19 @@ export const login = async (request, response) => {
     if (!email || !password) {
       return response
         .status(400)
-        .json({ success: false,error: "email and password are required" });
+        .json({ success: false, error: "email and password are required" });
     }
     const user = await User.findOne({ email });
     if (!user) {
-      return response.status(401).json({ success: false,error: "user or password invalid" });
+      return response
+        .status(401)
+        .json({ success: false, error: "user or password invalid" });
     }
     const isPassWordMatched = await bcrypt.compare(password, user.password);
     if (!isPassWordMatched) {
-      return response.status(401).json({ success: false,error: "user or password invalid" });
+      return response
+        .status(401)
+        .json({ success: false, error: "user or password invalid" });
     }
     if (user.isVerified) {
       await generateTokenAndSetCookie(response, user);
@@ -51,7 +55,7 @@ export const login = async (request, response) => {
     }
     const verificationToken = crypto.randomBytes(32).toString("hex");
     const verificationCode = Math.floor(
-      100000 + Math.random() * 900000
+      100000 + Math.random() * 900000,
     ).toString();
     user.verificationCode = verificationCode;
     user.verificationToken = verificationToken;
@@ -62,6 +66,7 @@ export const login = async (request, response) => {
     return response.status(200).json({
       success: true,
       message: `The code has been sent to your email, Check it`,
+      verificationToken,
     });
   } catch (error) {
     return response.status(500).json({
@@ -76,23 +81,28 @@ export const register = async (request, response) => {
   try {
     const { name, email, password, username } = request.body;
     if (!email || !password || !username || !name) {
-      return response.status(400).json({ success: false,error: "all fields are required" });
-    }
-    if (password.length < 6) {
       return response
         .status(400)
-        .json({ success: false,error: "password must be at least 6 characters" });
+        .json({ success: false, error: "all fields are required" });
+    }
+    if (password.length < 6) {
+      return response.status(400).json({
+        success: false,
+        error: "password must be at least 6 characters",
+      });
     }
     const existingUser = await User.findOne({
       $or: [{ email }, { username }],
     });
     if (existingUser) {
-      return response.status(400).json({success: false,error: "user already exists" });
+      return response
+        .status(400)
+        .json({ success: false, error: "user already exists" });
     }
     const hashedPassword = await bcrypt.hash(password, 10);
     const verificationToken = crypto.randomBytes(32).toString("hex");
     const verificationCode = Math.floor(
-      100000 + Math.random() * 900000
+      100000 + Math.random() * 900000,
     ).toString();
     const expiredAt = new Date(Date.now() + 60 * 60 * 1000);
     const resendAfter = new Date(Date.now() + 60 * 1000);
@@ -111,6 +121,7 @@ export const register = async (request, response) => {
     return response.status(201).json({
       success: true,
       message: `The code has been sent to your email, Check it`,
+      verificationToken,
     });
   } catch (error) {
     return response.status(500).json({
@@ -125,14 +136,20 @@ export const checkPage = async (request, response) => {
   try {
     const { verificationToken } = request.params;
     if (!verificationToken) {
-      return response.status(400).json({ success: false,error: "all fields are required" });
+      return response
+        .status(400)
+        .json({ success: false, error: "all fields are required" });
     }
     const user = await User.findOne({ verificationToken });
     if (!user) {
-      return response.status(400).json({ success: false,error: "invalid token" });
+      return response
+        .status(400)
+        .json({ success: false, error: "invalid token" });
     }
     if (user.expiredAt < new Date()) {
-      return response.status(400).json({ success: false,error: "token expired" });
+      return response
+        .status(400)
+        .json({ success: false, error: "token expired" });
     }
     let resendAfterSeconds = 0;
     if (user.resendAfter) {
@@ -157,17 +174,25 @@ export const checkCode = async (request, response) => {
   try {
     const { verificationCode, verificationToken } = request.body;
     if (!verificationCode || !verificationToken) {
-      return response.status(400).json({ success: false,error: "all fields are required" });
+      return response
+        .status(400)
+        .json({ success: false, error: "all fields are required" });
     }
     const user = await User.findOne({ verificationToken });
     if (!user) {
-      return response.status(400).json({ success: false,error: "invalid token" });
+      return response
+        .status(400)
+        .json({ success: false, error: "invalid token" });
     }
     if (user.verificationCode !== verificationCode) {
-      return response.status(400).json({ success: false,error: "invalid code" });
+      return response
+        .status(400)
+        .json({ success: false, error: "invalid code" });
     }
     if (user.expiredAt < new Date()) {
-      return response.status(400).json({ success: false,error: "token expired" });
+      return response
+        .status(400)
+        .json({ success: false, error: "token expired" });
     }
     user.isVerified = true;
     user.verificationCode = null;
@@ -194,17 +219,23 @@ export const resendCode = async (request, response) => {
   try {
     const { verificationToken } = request.body;
     if (!verificationToken) {
-      return response.status(400).json({ success: false,error: "all fields are required" });
+      return response
+        .status(400)
+        .json({ success: false, error: "all fields are required" });
     }
     const user = await User.findOne({ verificationToken });
     if (!user) {
-      return response.status(400).json({ success: false,error: "invalid token" });
+      return response
+        .status(400)
+        .json({ success: false, error: "invalid token" });
     }
     if (user.resendAfter && user.resendAfter.getTime() > Date.now()) {
-      return response.status(400).json({ success: false, error: "Wait 60 seconds" });
+      return response
+        .status(400)
+        .json({ success: false, error: "Wait 60 seconds" });
     }
     const verificationCode = Math.floor(
-      100000 + Math.random() * 900000
+      100000 + Math.random() * 900000,
     ).toString();
     user.resendAfter = new Date(Date.now() + 60 * 1000);
     user.expiredAt = new Date(Date.now() + 60 * 60 * 1000);

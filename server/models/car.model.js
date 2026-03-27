@@ -3,23 +3,23 @@ const carSchema = new mongoose.Schema(
   {
     image: {
       type: String,
-      required: true
+      required: true,
     },
     brand: {
       type: String,
-      required: true
+      required: true,
     },
     model: {
       type: String,
-      required: true
+      required: true,
     },
     year: {
       type: Number,
-      required: true
+      required: true,
     },
     price: {
       type: Number,
-      required: true
+      required: true,
     },
     category: {
       type: String,
@@ -33,15 +33,15 @@ const carSchema = new mongoose.Schema(
     },
     capacity: {
       type: Number,
-      required: true
+      required: true,
     },
     location: {
       type: String,
-      required: true
+      required: true,
     },
     description: {
       type: String,
-      length: 100
+      maxlength: 100,
     },
     transmission: {
       type: String,

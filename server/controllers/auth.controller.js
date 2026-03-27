@@ -3,6 +3,12 @@ import bcrypt from "bcryptjs";
 import { generateTokenAndSetCookie } from "../utils/generateTokenAndSetCookie.utils.js";
 import crypto from "crypto";
 import { sendVerificationEmail, sendWelcomeEmail } from "../email/email.js";
+import {
+  emailRegex,
+  nameRegex,
+  passwordRegex,
+  usernameRegex,
+} from "../auth.regax.js";
 export const checkAuth = async (request, response) => {
   try {
     if (request.user) {
@@ -31,6 +37,19 @@ export const login = async (request, response) => {
       return response
         .status(400)
         .json({ success: false, error: "email and password are required" });
+    }
+    if (!emailRegex.test(email)) {
+      return response.status(400).json({
+        success: false,
+        error: "Please provide a valid email address.",
+      });
+    }
+    if (!passwordRegex.test(password)) {
+      return response.status(400).json({
+        success: false,
+        error:
+          "Password must be at least 8 characters long and include at least one uppercase letter, one lowercase letter, one number, and one symbol.",
+      });
     }
     const user = await User.findOne({ email });
     if (!user) {
@@ -79,16 +98,43 @@ export const login = async (request, response) => {
 };
 export const register = async (request, response) => {
   try {
-    const { name, email, password, username } = request.body;
-    if (!email || !password || !username || !name) {
+    const { name, email, password, username, confirm_password } = request.body;
+    if (!email || !password || !username || !name || !confirm_password) {
       return response
         .status(400)
         .json({ success: false, error: "all fields are required" });
     }
-    if (password.length < 6) {
+    if (confirm_password !== password) {
       return response.status(400).json({
         success: false,
-        error: "password must be at least 6 characters",
+        error: "The passwords are not the same",
+      });
+    }
+    if (!nameRegex.test(name)) {
+      return response.status(400).json({
+        success: false,
+        error:
+          "Name must be 1 to 4 words, each at least 3 letters, using Arabic or English letters only.",
+      });
+    }
+    if (!usernameRegex.test(username)) {
+      return response.status(400).json({
+        success: false,
+        error:
+          "Username must start with a letter, be at least 4 characters, and can include letters, numbers, underscores or dots.",
+      });
+    }
+    if (!emailRegex.test(email)) {
+      return response.status(400).json({
+        success: false,
+        error: "Please provide a valid email address.",
+      });
+    }
+    if (!passwordRegex.test(password)) {
+      return response.status(400).json({
+        success: false,
+        error:
+          "Password must be at least 8 characters long and include at least one uppercase letter, one lowercase letter, one number, and one symbol.",
       });
     }
     const existingUser = await User.findOne({

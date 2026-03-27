@@ -1,8 +1,9 @@
 import { Car } from "../models/car.model.js";
+import mongoose from "mongoose";
+const getImagePath = (file) => (file ? file.path : null);
 export const createCar = async (request, response) => {
   try {
-    const image = request.file;
-
+    const image = getImagePath(request.file);
     const {
       brand,
       model,
@@ -15,7 +16,6 @@ export const createCar = async (request, response) => {
       description,
       transmission,
     } = request.body;
-
     if (
       !image ||
       !brand ||
@@ -29,11 +29,8 @@ export const createCar = async (request, response) => {
       !description ||
       !transmission
     ) {
-      return response.status(400).json({
-        message: "All fields are required",
-      });
+      return response.status(400).json({ message: "All fields are required" });
     }
-
     const newCar = new Car({
       image,
       brand,
@@ -47,95 +44,59 @@ export const createCar = async (request, response) => {
       description,
       transmission,
     });
-
     const result = await newCar.save();
-
-    return response.status(201).json({
-      success: true,
-      data: result,
-    });
+    return response.status(201).json({ success: true, data: result });
   } catch (error) {
-    return response.status(500).json({
-      success: false,
-      message: error.message,
-    });
+    return response.status(500).json({ success: false, message: error.message });
   }
 };
-
 export const deleteCar = async (request, response) => {
-  if (!request.user.isAdmin) {
-    return response.status(401).json({
-      success: false,
-      error: "401 Unauthorized user",
-    });
+  try {
+    if (!request.user.isAdmin) {
+      return response.status(401).json({ success: false, error: "Unauthorized user" });
+    }
+    const deletedCar = await Car.findByIdAndDelete(request.params.id);
+    if (!deletedCar) {
+      return response.status(404).json({ message: "Car Not Found" });
+    }
+    return response.status(200).json({ success: true, data: deletedCar });
+  } catch (error) {
+    return response.status(500).json({ success: false, message: error.message });
   }
-
-  const result = await Car.findById(request.params.id);
-  if (!result) {
-    return response.status(404).json({ message: "Car Not Found" });
-  }
-  await Car.findByIdAndDelete(result._id);
-  return response.status(200).json({ success: true });
 };
-
 export const getAllCar = async (request, response) => {
   try {
-    const result = await Car.find();
-
-    return response.status(200).json({
-      success: true,
-      data: result,
-    });
+    const cars = await Car.find();
+    return response.status(200).json({ success: true, data: cars });
   } catch (error) {
-    return response.status(500).json({
-      success: false,
-      error: error.message,
-    });
+    return response.status(500).json({ success: false, error: error.message });
   }
 };
-
 export const getSingleCar = async (request, response) => {
   try {
     const { id } = request.params;
-
     if (!mongoose.Types.ObjectId.isValid(id)) {
       return response.status(400).json({ message: "Invalid Car ID" });
     }
-
-    const result = await Car.findById(id);
-
-    if (!result) {
+    const car = await Car.findById(id);
+    if (!car) {
       return response.status(404).json({ message: "Car Not Found" });
     }
-
-    return response.status(200).json({
-      success: true,
-      data: result,
-    });
+    return response.status(200).json({ success: true, data: car });
   } catch (error) {
-    return response.status(500).json({
-      success: false,
-      error: error.message,
-    });
+    return response.status(500).json({ success: false, error: error.message });
   }
 };
-
 export const updateCar = async (request, response) => {
-  const { id } = request.params;
-
   try {
+    const { id } = request.params;
     if (!request.user.isAdmin) {
-      return response.status(401).json({
-        success: false,
-        error: "401 Unauthorized user",
-      });
+      return response.status(401).json({ success: false, error: "Unauthorized user" });
     }
     if (!mongoose.Types.ObjectId.isValid(id)) {
       return response.status(400).json({ message: "Invalid Car ID" });
     }
-
-    const image = request.file;
-
+    const image = getImagePath(request.file);
     const {
       brand,
       model,
@@ -148,7 +109,6 @@ export const updateCar = async (request, response) => {
       description,
       transmission,
     } = request.body;
-
     const updateData = {
       ...(image && { image }),
       ...(brand && { brand }),
@@ -162,23 +122,12 @@ export const updateCar = async (request, response) => {
       ...(description && { description }),
       ...(transmission && { transmission }),
     };
-
-    const updatedCar = await Car.findByIdAndUpdate(id, updateData, {
-      new: true,
-    });
-
+    const updatedCar = await Car.findByIdAndUpdate(id, updateData, { new: true });
     if (!updatedCar) {
       return response.status(404).json({ message: "Car Not Found" });
     }
-
-    return response.status(200).json({
-      success: true,
-      data: updatedCar,
-    });
+    return response.status(200).json({ success: true, data: updatedCar });
   } catch (error) {
-    return response.status(500).json({
-      success: false,
-      message: error.message,
-    });
+    return response.status(500).json({ success: false, message: error.message });
   }
 };

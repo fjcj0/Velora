@@ -17,7 +17,10 @@ const AuthLayout = () => {
   />
 </div>
         <div className="w-full flex flex-col items-center justify-center px-5 py-5 ">
-          <div className="bg-[#FCFBFE] flex items-center justify-center gap-1 px-3 py-1 mb-4">
+          <div className="w-full flex items-start justify-start mb-2">
+            <img src="/star.png" alt="star icon" className="w-14" />
+          </div>
+          <div className="bg-[#FCFBFE] flex items-center justify-center gap-1 px-3 py-1 mb-4 rounded-lg border-1 border-gray-300">
             <AuthLink
               icon={
                 location.pathname === "/auth/login"

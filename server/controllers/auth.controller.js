@@ -316,3 +316,190 @@ export const logout = async (request, response) => {
     });
   }
 };
+export const resetPassword = async (request, response) => {
+  try {
+    const { email } = request.body;
+    if (!email) {
+      return response
+        .status(400)
+        .json({ success: false, error: "email is required" });
+    }
+    if (!emailRegex.test(email)) {
+      return response.status(400).json({
+        success: false,
+        error: "Please provide a valid email address.",
+      });
+    }
+    const user = await User.findOne({ email });
+    if (!user) {
+      return response.status(200).json({
+        success: true,
+        message: "If this email exists, a reset link has been sent",
+      });
+    }
+    const resetPasswordToken = crypto.randomBytes(32).toString("hex");
+    user.resetPasswordToken = resetPasswordToken;
+    user.resetPasswordExpires = Date.now() + 3600000;
+    await user.save();
+    const resetURL = `${CLIENT_URL}/reset-password/${resetPasswordToken}`;
+    await sendPasswordResetEmail(user.email, resetURL);
+    return response.status(200).json({
+      success: true,
+      message: "Password reset link sent successfully",
+    });
+  } catch (error) {
+    return response.status(500).json({
+      success: false,
+      error: `Internal Server Error: ${
+        error instanceof Error ? error.message : error
+      }`,
+    });
+  }
+};
+export const resetPasswordConfirm = async (request, response) => {
+  try {
+    const { token } = request.params;
+    const { password } = request.body;
+    if (!password) {
+      return response.status(400).json({
+        success: false,
+        error: "Password is required",
+      });
+    }
+    const user = await User.findOne({
+      resetPasswordToken: token,
+    });
+    if (!user) {
+      return response.status(400).json({
+        success: false,
+        error: "Invalid or expired token",
+      });
+    }
+    if (user.resetPasswordExpires.getTime() < new Date()) {
+      return response
+        .status(400)
+        .json({ success: false, error: "token expired" });
+    }
+    user.password = password;
+    user.resetPasswordToken = undefined;
+    user.resetPasswordExpires = undefined;
+    await user.save();
+    return response.status(200).json({
+      success: true,
+      message: "Password has been reset successfully",
+    });
+  } catch (error) {
+    return response.status(500).json({
+      success: false,
+      error: `Internal Server Error: ${
+        error instanceof Error ? error.message : error
+      }`,
+    });
+  }
+};
+export const checkResetPasswordPage = async (request, response) => {
+  try {
+    const { token } = request.params;
+    const user = await User.findOne({
+      resetPasswordToken: token,
+    });
+    if (!user) {
+      return response.status(400).json({
+        success: false,
+        error: "Invalid or expired token",
+      });
+    }
+    if (user.resetPasswordExpires.getTime() < new Date()) {
+      return response
+        .status(400)
+        .json({ success: false, error: "token expired" });
+    }
+    await user.save();
+    return response.status(200).json({
+      success: true,
+      message: token,
+    });
+  } catch (error) {
+    return response.status(500).json({
+      success: false,
+      error: `Internal Server Error: ${
+        error instanceof Error ? error.message : error
+      }`,
+    });
+  }
+};
+export const updateUser = async (request, response) => {
+  try {
+    const { userId } = request.params;
+    if (request.user.id != userId) {
+      return response.status(403).json({ message: "Not authorized" });
+    }
+    const { name, username, email, profilePhoto, bio } = request.body;
+    const updateFields = {};
+    if (name) updateFields.name = name;
+    if (username) updateFields.username = username;
+    if (email) updateFields.email = email;
+    if (profilePhoto) updateFields.profilePhoto = profilePhoto;
+    if (bio) updateFields.bio = bio;
+    const updatedUser = await User.findByIdAndUpdate(
+      userId,
+      { $set: updateFields },
+      { new: true, runValidators: true },
+    );
+    if (!updatedUser) {
+      return response.status(404).json({
+        success: false,
+        error: "User not found",
+      });
+    }
+    return response.status(200).json({
+      success: true,
+      message: "User updated successfully",
+      data: updatedUser,
+    });
+  } catch (error) {
+    return response.status(500).json({
+      success: false,
+      error: `Internal Server Error: ${error instanceof Error ? error.message : error}`,
+    });
+  }
+};
+export const updateProfilePhoto = async (request, response) => {
+  try {
+    if (!request.file) {
+      return response.status(400).json({ message: "No file provided" });
+    }
+    const imagePath = path.join(
+      __dirname,
+      `../images/${request.file.filename}`,
+    );
+    const result = await uploadPicture(imagePath);
+    const user = await User.findById(request.user.id);
+    if (!user) {
+      return response.status(404).json({ message: "User not found" });
+    }
+    if (user.profilePhoto && user.profilePhoto.publicId) {
+      await deletePicture(user.profilePhoto.publicId);
+    }
+    user.profilePhoto = {
+      url: result.secure_url,
+      publicId: result.publicId,
+    };
+    await user.save();
+    fs.unlink(imagePath, (err) => {
+      if (err) console.error("Error deleting temp file:", err);
+    });
+    return response.status(200).json({
+      success: true,
+      message: "Your profile photo uploaded successfully",
+      profilePhoto: user.profilePhoto,
+    });
+  } catch (error) {
+    return response.status(500).json({
+      success: false,
+      error: `Internal Server Error: ${
+        error instanceof Error ? error.message : error
+      }`,
+    });
+  }
+};

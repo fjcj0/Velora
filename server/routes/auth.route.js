@@ -28,4 +28,5 @@ router.post("/confirm-password/:token", verifyUser, resetPasswordConfirm);
 router.put("/update-user", verifyUser, updateUser);
 router.put("/update-user-image", verifyUser, updateProfilePhoto);
 router.get("/check-reset-password-page", verifyUser, checkResetPasswordPage);
+
 export default router;

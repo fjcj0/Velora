@@ -1,4 +1,4 @@
-import { cloudinary } from '../config/cloudinary.config.js';
+import cloudinary from '../config/cloudinary.config.js';
 export const getPublicIdFromUrl = (url, location) => {
     const parts = url.split('/');
     const filename = parts[parts.length - 1];

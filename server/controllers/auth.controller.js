@@ -353,7 +353,7 @@ export const resetPassword = async (request, response) => {
     user.resetPasswordToken = resetPasswordToken;
     user.resetPasswordExpires = Date.now() + 3600000;
     await user.save();
-    const resetURL = `http://localhost:3000/reset-password/${resetPasswordToken}`;
+    const resetURL = `${CLIENT_URL}/reset-password/${resetPasswordToken}`;
     await sendPasswordResetEmail(user.email, resetURL);
     return response.status(200).json({
       success: true,
@@ -417,8 +417,41 @@ export const resetPasswordConfirm = async (request, response) => {
     });
   }
 };
+export const checkResetPasswordPage = async (request, response) => {
+  try {
+    const { token } = request.params;
 
-import { User } from "../models/user.model.js";
+    const user = await User.findOne({
+      resetPasswordToken: token,
+    });
+
+    if (!user) {
+      return response.status(400).json({
+        success: false,
+        error: "Invalid or expired token",
+      });
+    }
+    if (user.resetPasswordExpires.getTime() < new Date()) {
+      return response
+        .status(400)
+        .json({ success: false, error: "token expired" });
+    }
+
+    await user.save();
+
+    return response.status(200).json({
+      success: true,
+      message: token,
+    });
+  } catch (error) {
+    return response.status(500).json({
+      success: false,
+      error: `Internal Server Error: ${
+        error instanceof Error ? error.message : error
+      }`,
+    });
+  }
+};
 
 export const updateUser = async (request, response) => {
   try {
@@ -465,31 +498,47 @@ export const updateUser = async (request, response) => {
 
 export const updateProfilePhoto = async (request, response) => {
   try {
-    if (!req.file) {
-      res.status(400).json({ message: "no file provided" });
+    if (!request.file) {
+      return response.status(400).json({ message: "No file provided" });
     }
 
-    const imagepath = path.join(__dirname, `../images/${req.file.filename}`);
-    const result = await uploadPicture(imagepath);
-    const user = await User.findById(req.user.id);
+    const imagePath = path.join(
+      __dirname,
+      `../images/${request.file.filename}`,
+    );
 
-    if (user.profilePhoto.publicId !== null) {
+    const result = await uploadPicture(imagePath);
+
+    const user = await User.findById(request.user.id);
+    if (!user) {
+      return response.status(404).json({ message: "User not found" });
+    }
+
+    if (user.profilePhoto && user.profilePhoto.publicId) {
       await deletePicture(user.profilePhoto.publicId);
     }
+
     user.profilePhoto = {
       url: result.secure_url,
       publicId: result.publicId,
     };
     await user.save();
-    res.status(200).json({
-      message: "your profile photo uploaded successfully",
-      profilePhoto: { url: result.secure_url, publicId: result.publicId },
+
+    fs.unlink(imagePath, (err) => {
+      if (err) console.error("Error deleting temp file:", err);
     });
-    fs.unlinkSync(imagepath);
+
+    return response.status(200).json({
+      success: true,
+      message: "Your profile photo uploaded successfully",
+      profilePhoto: user.profilePhoto,
+    });
   } catch (error) {
-    return res.status(500).json({
+    return response.status(500).json({
       success: false,
-      error: `Internal Server Error: ${error instanceof Error ? error.message : error}`,
+      error: `Internal Server Error: ${
+        error instanceof Error ? error.message : error
+      }`,
     });
   }
 };

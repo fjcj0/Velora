@@ -9,6 +9,7 @@ import {
   passwordRegex,
   usernameRegex,
 } from "../auth.regax.js";
+import { deleteRedis } from "../utils/redis.utils.js";
 export const checkAuth = async (request, response) => {
   try {
     if (request.user) {
@@ -294,6 +295,20 @@ export const resendCode = async (request, response) => {
     });
   } catch (error) {
     return response.status(500).json({
+      success: false,
+      error: `Internal Server Error: ${
+        error instanceof Error ? error.message : error
+      }`,
+    });
+  }
+};
+export const logout = async (request, response) => {
+  try {
+      await deleteRedis(request.user._id);
+      response.clearCookie('token');
+      return response.status(200).json({ success: true, message: "you have been logged out successfully!!" });
+  } catch (error) {
+        return response.status(500).json({
       success: false,
       error: `Internal Server Error: ${
         error instanceof Error ? error.message : error

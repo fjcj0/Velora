@@ -389,7 +389,7 @@ export const resetPasswordConfirm = async (request, response) => {
         error: "Invalid or expired token",
       });
     }
-    if (user.resetPasswordExpires < new Date()) {
+    if (user.resetPasswordExpires.getTime() < new Date()) {
       return response
         .status(400)
         .json({ success: false, error: "token expired" });
@@ -412,6 +412,73 @@ export const resetPasswordConfirm = async (request, response) => {
       error: `Internal Server Error: ${
         error instanceof Error ? error.message : error
       }`,
+    });
+  }
+};
+
+export const updateUser = async (req, res) => {
+  try {
+    const { userId } = req.params;
+    const { name, username, email, profilePhoto, bio } = req.body;
+
+    const updateFields = {};
+    if (name) updateFields.name = name;
+    if (username) updateFields.username = username;
+    if (email) updateFields.email = email;
+    if (profilePhoto) updateFields.profilePhoto = profilePhoto;
+    if (bio) updateFields.bio = bio;
+
+    const updatedUser = await User.findByIdAndUpdate(
+      userId,
+      { $set: updateFields },
+      { new: true, runValidators: true },
+    );
+
+    if (!updatedUser) {
+      return res.status(404).json({
+        success: false,
+        error: "User not found",
+      });
+    }
+
+    return res.status(200).json({
+      success: true,
+      message: "User updated successfully",
+      data: updatedUser,
+    });
+  } catch (error) {
+    return res.status(500).json({
+      success: false,
+      error: `Internal Server Error: ${error instanceof Error ? error.message : error}`,
+    });
+  }
+};
+
+export const updateProfilePhoto = async (req, res) => {
+  try {
+    const userId = req.user.id;
+    if (!req.file) {
+      return res.status(400).json({
+        success: false,
+        error: "No file uploaded",
+      });
+    }
+
+    const updatedUser = await User.findByIdAndUpdate(
+      userId,
+      { $set: { profilePhoto: `/uploads/${req.file.filename}` } },
+      { new: true },
+    );
+
+    return res.status(200).json({
+      success: true,
+      message: "Profile photo updated successfully",
+      data: updatedUser,
+    });
+  } catch (error) {
+    return res.status(500).json({
+      success: false,
+      error: `Internal Server Error: ${error instanceof Error ? error.message : error}`,
     });
   }
 };

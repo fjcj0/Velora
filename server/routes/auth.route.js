@@ -12,6 +12,7 @@ import {
   resetPasswordConfirm,
   updateProfilePhoto,
   updateUser,
+  
 } from "../controllers/auth.controller.js";
 import { blockUser, verifyUser } from "../middleware/user.guard.js";
 const router = express.Router();

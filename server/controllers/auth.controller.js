@@ -15,6 +15,7 @@ import {
 } from "../auth.regax.js";
 import { deleteRedis } from "../utils/redis.utils.js";
 import { deletePicture, uploadPicture } from "../utils/cloudinary.utils.js";
+import { request } from "http";
 export const checkAuth = async (request, response) => {
   try {
     if (request.user) {
@@ -417,10 +418,17 @@ export const resetPasswordConfirm = async (request, response) => {
   }
 };
 
-export const updateUser = async (req, res) => {
+import { User } from "../models/user.model.js";
+
+export const updateUser = async (request, response) => {
   try {
-    const { userId } = req.params;
-    const { name, username, email, profilePhoto, bio } = req.body;
+    const { userId } = request.params;
+
+    if (request.user.id != userId) {
+      return response.status(403).json({ message: "Not authorized" });
+    }
+
+    const { name, username, email, profilePhoto, bio } = request.body;
 
     const updateFields = {};
     if (name) updateFields.name = name;
@@ -436,26 +444,26 @@ export const updateUser = async (req, res) => {
     );
 
     if (!updatedUser) {
-      return res.status(404).json({
+      return response.status(404).json({
         success: false,
         error: "User not found",
       });
     }
 
-    return res.status(200).json({
+    return response.status(200).json({
       success: true,
       message: "User updated successfully",
       data: updatedUser,
     });
   } catch (error) {
-    return res.status(500).json({
+    return response.status(500).json({
       success: false,
       error: `Internal Server Error: ${error instanceof Error ? error.message : error}`,
     });
   }
 };
 
-export const updateProfilePhoto = async (req, res) => {
+export const updateProfilePhoto = async (request, response) => {
   try {
     if (!req.file) {
       res.status(400).json({ message: "no file provided" });

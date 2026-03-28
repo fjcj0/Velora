@@ -28,8 +28,11 @@ const userSchema = new mongoose.Schema(
       required: true,
     },
     profilePhoto: {
-      type: String,
-      default: "/user.png",
+      type: Object,
+      default: {
+        url: "https://cdn.pixabay.com/photo/2016/11/08/15/21/user-1808597_640.png",
+        publicId: null,
+      },
     },
     bio: {
       type: String,

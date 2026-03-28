@@ -14,6 +14,7 @@ import {
   usernameRegex,
 } from "../auth.regax.js";
 import { deleteRedis } from "../utils/redis.utils.js";
+import { deletePicture, uploadPicture } from "../utils/cloudinary.utils.js";
 export const checkAuth = async (request, response) => {
   try {
     if (request.user) {
@@ -456,25 +457,27 @@ export const updateUser = async (req, res) => {
 
 export const updateProfilePhoto = async (req, res) => {
   try {
-    const userId = req.user.id;
     if (!req.file) {
-      return res.status(400).json({
-        success: false,
-        error: "No file uploaded",
-      });
+      res.status(400).json({ message: "no file provided" });
     }
 
-    const updatedUser = await User.findByIdAndUpdate(
-      userId,
-      { $set: { profilePhoto: `/uploads/${req.file.filename}` } },
-      { new: true },
-    );
+    const imagepath = path.join(__dirname, `../images/${req.file.filename}`);
+    const result = await uploadPicture(imagepath);
+    const user = await User.findById(req.user.id);
 
-    return res.status(200).json({
-      success: true,
-      message: "Profile photo updated successfully",
-      data: updatedUser,
+    if (user.profilePhoto.publicId !== null) {
+      await deletePicture(user.profilePhoto.publicId);
+    }
+    user.profilePhoto = {
+      url: result.secure_url,
+      publicId: result.publicId,
+    };
+    await user.save();
+    res.status(200).json({
+      message: "your profile photo uploaded successfully",
+      profilePhoto: { url: result.secure_url, publicId: result.publicId },
     });
+    fs.unlinkSync(imagepath);
   } catch (error) {
     return res.status(500).json({
       success: false,

@@ -12,7 +12,6 @@ import {
   resetPasswordConfirm,
   updateProfilePhoto,
   updateUser,
-  
 } from "../controllers/auth.controller.js";
 import { blockUser, verifyUser } from "../middleware/user.guard.js";
 const router = express.Router();
@@ -28,5 +27,4 @@ router.post("/confirm-password/:token", verifyUser, resetPasswordConfirm);
 router.put("/update-user", verifyUser, updateUser);
 router.put("/update-user-image", verifyUser, updateProfilePhoto);
 router.get("/check-reset-password-page", verifyUser, checkResetPasswordPage);
-
 export default router;

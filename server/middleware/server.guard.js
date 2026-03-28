@@ -50,7 +50,6 @@ const allowedBrowsers = [
   /Safari/i,
   /PostmanRuntime/i,
 ];
-
 export const browserOnly = (request, response, next) => {
   const userAgent = xss(request.headers["user-agent"] || "");
   if (!allowedBrowsers.some((regex) => regex.test(userAgent))) {

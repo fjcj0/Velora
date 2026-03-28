@@ -3,3 +3,9 @@ export const getPublicIdFromUrl = (url,location) => {
     const filename = parts[parts.length - 1];
     return `${location}/${filename.split('.')[0]}`;
 };
+export const deletePicture = () => {
+
+};
+export const uploadPicture = () => {
+
+};

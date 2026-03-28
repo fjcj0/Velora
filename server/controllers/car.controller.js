@@ -1,53 +1,30 @@
 import { Car } from "../models/car.model.js";
 import mongoose from "mongoose";
-const getImagePath = (file) => (file ? file.path : null);
+import { uploadPicture, deletePicture } from "../utils/cloudinary.utils.js";
+import { deleteRedis, getRedis, setRedis } from "../utils/redis.utils.js";
 export const createCar = async (request, response) => {
   try {
-    const image = getImagePath(request.file);
-    const {
-      brand,
-      model,
-      year,
-      price,
-      category,
-      fuel,
-      capacity,
-      location,
-      description,
-      transmission,
-    } = request.body;
-    if (
-      !image ||
-      !brand ||
-      !model ||
-      !year ||
-      !price ||
-      !category ||
-      !fuel ||
-      !capacity ||
-      !location ||
-      !description ||
-      !transmission
-    ) {
+    const { brand, model, year, price, category, fuel, capacity, location, description, transmission } = request.body;
+    if (!request.file || !brand || !model || !year || !price || !category || !fuel || !capacity || !location || !description || !transmission) {
       return response.status(400).json({ message: "All fields are required" });
     }
-    const newCar = new Car({
-      image,
-      brand,
-      model,
-      year,
-      price,
-      category,
-      fuel,
-      capacity,
-      location,
-      description,
-      transmission,
-    });
+    const image = await uploadPicture(request.file, "cars");
+    if (!image) return response.status(500).json({ message: "Failed to upload image" });
+    const newCar = new Car({ image, brand, model, year, price, category, fuel, capacity, location, description, transmission });
     const result = await newCar.save();
+    await setRedis(result._id, result);
+    let cars = await getRedis("cars");
+    cars = cars ? cars : [];
+    cars.push(result);
+    await setRedis("cars", cars);
     return response.status(201).json({ success: true, data: result });
   } catch (error) {
-    return response.status(500).json({ success: false, message: error.message });
+      return response.status(500).json({
+      success: false,
+      error: `Internal Server Error: ${
+        error instanceof Error ? error.message : error
+      }`,
+    });
   }
 };
 export const deleteCar = async (request, response) => {
@@ -56,78 +33,103 @@ export const deleteCar = async (request, response) => {
       return response.status(401).json({ success: false, error: "Unauthorized user" });
     }
     const deletedCar = await Car.findByIdAndDelete(request.params.id);
-    if (!deletedCar) {
-      return response.status(404).json({ message: "Car Not Found" });
+    if (!deletedCar) return response.status(404).json({ message: "Car Not Found" });
+    if (deletedCar.image) {
+      await deletePicture(deletedCar.image, "cars");
+    }
+    await deleteRedis(request.params.id);
+    let cars = await getRedis("cars");
+    if (cars) {
+      cars = cars.filter(car => car._id !== request.params.id);
+      await setRedis("cars", cars);
     }
     return response.status(200).json({ success: true, data: deletedCar });
   } catch (error) {
-    return response.status(500).json({ success: false, message: error.message });
+      return response.status(500).json({
+      success: false,
+      error: `Internal Server Error: ${
+        error instanceof Error ? error.message : error
+      }`,
+    });
   }
 };
 export const getAllCar = async (request, response) => {
   try {
-    const cars = await Car.find();
+    let cars = await getRedis("cars");
+    if (!cars) {
+      cars = await Car.find();
+      await setRedis("cars", cars);
+    }
     return response.status(200).json({ success: true, data: cars });
   } catch (error) {
-    return response.status(500).json({ success: false, error: error.message });
+      return response.status(500).json({
+      success: false,
+      error: `Internal Server Error: ${
+        error instanceof Error ? error.message : error
+      }`,
+    });
   }
 };
 export const getSingleCar = async (request, response) => {
   try {
     const { id } = request.params;
-    if (!mongoose.Types.ObjectId.isValid(id)) {
-      return response.status(400).json({ message: "Invalid Car ID" });
-    }
-    const car = await Car.findById(id);
+    if (!mongoose.Types.ObjectId.isValid(id)) return response.status(400).json({ message: "Invalid Car ID" });
+    let car = await getRedis(id);
     if (!car) {
-      return response.status(404).json({ message: "Car Not Found" });
+      car = await Car.findById(id);
+      if (!car) return response.status(404).json({ message: "Car Not Found" });
+      await setRedis(id, car);
     }
     return response.status(200).json({ success: true, data: car });
   } catch (error) {
-    return response.status(500).json({ success: false, error: error.message });
+      return response.status(500).json({
+      success: false,
+      error: `Internal Server Error: ${
+        error instanceof Error ? error.message : error
+      }`,
+    });
   }
 };
 export const updateCar = async (request, response) => {
   try {
     const { id } = request.params;
-    if (!request.user.isAdmin) {
-      return response.status(401).json({ success: false, error: "Unauthorized user" });
+    if (!request.user.isAdmin) return response.status(401).json({ success: false, error: "Unauthorized user" });
+    if (!mongoose.Types.ObjectId.isValid(id)) return response.status(400).json({ message: "Invalid Car ID" });
+    const car = await Car.findById(id);
+    if (!car) return response.status(404).json({ message: "Car Not Found" });
+    let image;
+    if (request.file) {
+      if (car.image) await deletePicture(car.image, "cars");
+      image = await uploadPicture(request.file, "cars");
+      if (!image) return response.status(500).json({ message: "Failed to upload image" });
     }
-    if (!mongoose.Types.ObjectId.isValid(id)) {
-      return response.status(400).json({ message: "Invalid Car ID" });
-    }
-    const image = getImagePath(request.file);
-    const {
-      brand,
-      model,
-      year,
-      price,
-      category,
-      fuel,
-      capacity,
-      location,
-      description,
-      transmission,
-    } = request.body;
     const updateData = {
       ...(image && { image }),
-      ...(brand && { brand }),
-      ...(model && { model }),
-      ...(year && { year }),
-      ...(price && { price }),
-      ...(category && { category }),
-      ...(fuel && { fuel }),
-      ...(capacity && { capacity }),
-      ...(location && { location }),
-      ...(description && { description }),
-      ...(transmission && { transmission }),
+      ...(request.body.brand && { brand: request.body.brand }),
+      ...(request.body.model && { model: request.body.model }),
+      ...(request.body.year && { year: request.body.year }),
+      ...(request.body.price && { price: request.body.price }),
+      ...(request.body.category && { category: request.body.category }),
+      ...(request.body.fuel && { fuel: request.body.fuel }),
+      ...(request.body.capacity && { capacity: request.body.capacity }),
+      ...(request.body.location && { location: request.body.location }),
+      ...(request.body.description && { description: request.body.description }),
+      ...(request.body.transmission && { transmission: request.body.transmission }),
     };
     const updatedCar = await Car.findByIdAndUpdate(id, updateData, { new: true });
-    if (!updatedCar) {
-      return response.status(404).json({ message: "Car Not Found" });
+    await setRedis(updatedCar._id, updatedCar);
+    let cars = await getRedis("cars");
+    if (cars) {
+      cars = cars.map(car => car._id === id ? updatedCar : car);
+      await setRedis("cars", cars);
     }
     return response.status(200).json({ success: true, data: updatedCar });
   } catch (error) {
-    return response.status(500).json({ success: false, message: error.message });
+      return response.status(500).json({
+      success: false,
+      error: `Internal Server Error: ${
+        error instanceof Error ? error.message : error
+      }`,
+    });
   }
 };

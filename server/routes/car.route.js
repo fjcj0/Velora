@@ -1,8 +1,8 @@
 import express from "express";
 import { createCar, deleteCar, getAllCar, getSingleCar, updateCar } from "../controllers/car.controller.js";
-import { photoUpload } from "../utils/photoUpload.utils.js";
 import { verifyAdmin } from "../middleware/admin.guard.js";
 import { verifyUser } from "../middleware/user.guard.js";
+import { photoUpload } from "../utils/multer.utils.js";
 const router = express.Router();
 router.post('/add-car', verifyAdmin,photoUpload.single("image"), createCar);
 router.delete('/delete-car/:id', verifyAdmin,deleteCar);

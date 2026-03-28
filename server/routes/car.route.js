@@ -1,11 +1,12 @@
 import express from "express";
-import { photoUpload } from "../middleware/photoUpload.js";
-import { blockUser, verifyUser } from "../middleware/user.guard.js";
-import { createCar, deleteCar } from "../controllers/car.controller.js";
+import { createCar, deleteCar, getAllCar, getSingleCar, updateCar } from "../controllers/car.controller.js";
+import { photoUpload } from "../utils/photoUpload.utils.js";
+import { verifyAdmin } from "../middleware/admin.guard.js";
+import { verifyUser } from "../middleware/user.guard.js";
 const router = express.Router();
-router
-  .route("/")
-  .post(blockUser, photoUpload.single("image"), createCar)
-  .delete(verifyUser, deleteCar);
-
+router.post('/add-car', verifyAdmin,photoUpload.single("image"), createCar);
+router.delete('/delete-car/:id', verifyAdmin,deleteCar);
+router.put('/update-car/:id', verifyAdmin,updateCar);
+router.get('/get-car/:id',verifyUser,getSingleCar);
+router.get('/get-cars',verifyUser,getAllCar);
 export default router;

@@ -13,7 +13,7 @@ const getTokenData = (request) => {
     return null;
   }
 };
-export const verifyUser = async (request, response, next) => {
+export const verifyAdmin = async (request, response, next) => {
   try {
     const decoded = getTokenData(request);
     if (!decoded) {
@@ -22,27 +22,16 @@ export const verifyUser = async (request, response, next) => {
     let existingUser = await getRedis(decoded.user._id.toString());
     if (!existingUser) {
       existingUser = await User.findById(decoded.user._id);
-      if (!existingUser || !existingUser.isVerified) {
-        return response.status(401).json({ success: false, error: "401 Unauthorized user" });
+      if (!existingUser || !existingUser.isVerified || !existingUser.isAdmin) {
+        return response.status(401).json({ success: false, error: "401 Unauthorized admin" });
       }
       await setRedis(existingUser._id.toString(), sanitizeUser(existingUser));
     }
-    if (!existingUser.isVerified) {
-      return response.status(401).json({ success: false, error: "401 Unauthorized user" });
+    if (!existingUser.isVerified || !existingUser.isAdmin) {
+      return response.status(401).json({ success: false, error: "401 Unauthorized admin" });
     }
     request.user = sanitizeUser(existingUser);
     next();
-  } catch (error) {
-    return response.status(500).json({ success: false, error: `Internal Server Error: ${error instanceof Error ? error.message : error}` });
-  }
-};
-export const blockUser = async (request, response, next) => {
-  try {
-    const decoded = getTokenData(request);
-    if (!decoded) return next();
-    const existingUser = await User.findById(decoded.user._id);
-    if (!existingUser) return next();
-    return response.status(405).json({ success: false, error: "405 Method Not Allowed You're already Login" });
   } catch (error) {
     return response.status(500).json({ success: false, error: `Internal Server Error: ${error instanceof Error ? error.message : error}` });
   }

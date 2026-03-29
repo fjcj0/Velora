@@ -1,5 +1,4 @@
 import { useState } from "react";
-
 const AuthInput = ({
     label,
     placeholder,
@@ -56,5 +55,4 @@ const AuthInput = ({
         </div>
     );
 };
-
 export default AuthInput;

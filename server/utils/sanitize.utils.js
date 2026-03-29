@@ -6,6 +6,8 @@ export const sanitizeUser = (user) => {
     verificationCode,
     expiredAt,
     resendAfter,
+    resetPasswordToken,
+    resetPasswordExpires,
     createdAt,
     updatedAt,
     __v,

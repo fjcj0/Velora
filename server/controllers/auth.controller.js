@@ -2,14 +2,16 @@ import { User } from "../models/user.model.js";
 import bcrypt from "bcryptjs";
 import { generateTokenAndSetCookie } from "../utils/generateTokenAndSetCookie.utils.js";
 import crypto from "crypto";
-import { sendVerificationEmail, sendWelcomeEmail } from "../email/email.js";
+import { sendPasswordResetEmail, sendVerificationEmail, sendWelcomeEmail } from "../email/email.js";
 import {
   emailRegex,
   nameRegex,
   passwordRegex,
   usernameRegex,
 } from "../auth.regax.js";
-import { deleteRedis } from "../utils/redis.utils.js";
+import { deleteRedis, setRedis } from "../utils/redis.utils.js";
+import { sanitizeUser } from "../utils/sanitize.utils.js";
+import { uploadPicture,deletePicture } from '../utils/cloudinary.utils.js';
 export const checkAuth = async (request, response) => {
   try {
     if (request.user) {
@@ -339,9 +341,9 @@ export const resetPassword = async (request, response) => {
     }
     const resetPasswordToken = crypto.randomBytes(32).toString("hex");
     user.resetPasswordToken = resetPasswordToken;
-    user.resetPasswordExpires = Date.now() + 3600000;
+    user.resetPasswordExpires = new Date(Date.now() + 60 * 60 * 1000);
     await user.save();
-    const resetURL = `${CLIENT_URL}/reset-password/${resetPasswordToken}`;
+    const resetURL = `${process.env.CLIENT_URL}/reset-password/${resetPasswordToken}`;
     await sendPasswordResetEmail(user.email, resetURL);
     return response.status(200).json({
       success: true,
@@ -366,6 +368,13 @@ export const resetPasswordConfirm = async (request, response) => {
         error: "Password is required",
       });
     }
+    if (!passwordRegex.test(password)) {
+         return response.status(400).json({
+        success: false,
+        error:
+          "Password must be at least 8 characters long and include at least one uppercase letter, one lowercase letter, one number, and one symbol.",
+      });
+    }
     const user = await User.findOne({
       resetPasswordToken: token,
     });
@@ -375,12 +384,13 @@ export const resetPasswordConfirm = async (request, response) => {
         error: "Invalid or expired token",
       });
     }
-    if (user.resetPasswordExpires.getTime() < new Date()) {
+    if (user.resetPasswordExpires.getTime() < Date.now()) {
       return response
         .status(400)
         .json({ success: false, error: "token expired" });
     }
-    user.password = password;
+    const hashedPassword = await bcrypt.hash(password, 10);
+    user.password = hashedPassword;
     user.resetPasswordToken = undefined;
     user.resetPasswordExpires = undefined;
     await user.save();
@@ -417,7 +427,7 @@ export const checkResetPasswordPage = async (request, response) => {
     await user.save();
     return response.status(200).json({
       success: true,
-      message: token,
+      resetPasswordToken: token,
     });
   } catch (error) {
     return response.status(500).json({
@@ -430,19 +440,13 @@ export const checkResetPasswordPage = async (request, response) => {
 };
 export const updateUser = async (request, response) => {
   try {
-    const { userId } = request.params;
-    if (request.user.id != userId) {
-      return response.status(403).json({ message: "Not authorized" });
-    }
-    const { name, username, email, profilePhoto, bio } = request.body;
+    const { name, username, bio } = request.body;
     const updateFields = {};
     if (name) updateFields.name = name;
     if (username) updateFields.username = username;
-    if (email) updateFields.email = email;
-    if (profilePhoto) updateFields.profilePhoto = profilePhoto;
     if (bio) updateFields.bio = bio;
-    const updatedUser = await User.findByIdAndUpdate(
-      userId,
+    let updatedUser = await User.findByIdAndUpdate(
+      request.user._id,
       { $set: updateFields },
       { new: true, runValidators: true },
     );
@@ -452,10 +456,12 @@ export const updateUser = async (request, response) => {
         error: "User not found",
       });
     }
+    updatedUser = sanitizeUser(updatedUser);
+    await setRedis(request.user._id, updatedUser);
     return response.status(200).json({
       success: true,
       message: "User updated successfully",
-      data: updatedUser,
+      user: updatedUser,
     });
   } catch (error) {
     return response.status(500).json({
@@ -469,37 +475,33 @@ export const updateProfilePhoto = async (request, response) => {
     if (!request.file) {
       return response.status(400).json({ message: "No file provided" });
     }
-    const imagePath = path.join(
-      __dirname,
-      `../images/${request.file.filename}`,
-    );
-    const result = await uploadPicture(imagePath);
-    const user = await User.findById(request.user.id);
+    let user = await User.findById(request.user._id);
     if (!user) {
       return response.status(404).json({ message: "User not found" });
     }
-    if (user.profilePhoto && user.profilePhoto.publicId) {
-      await deletePicture(user.profilePhoto.publicId);
+    const result = await uploadPicture(request.file.buffer);
+    if (!result) {
+      return response.status(400).json({
+        success: false,
+        error: "Failed to upload picture",
+      });
     }
-    user.profilePhoto = {
-      url: result.secure_url,
-      publicId: result.publicId,
-    };
+    if (user.profilePhoto) {
+      await deletePicture(user.profilePhoto);
+    }
+    user.profilePhoto = result;
     await user.save();
-    fs.unlink(imagePath, (err) => {
-      if (err) console.error("Error deleting temp file:", err);
-    });
+    user = sanitizeUser(user);
+    await setRedis(request.user._id, user);
     return response.status(200).json({
       success: true,
       message: "Your profile photo uploaded successfully",
-      profilePhoto: user.profilePhoto,
+      user,
     });
   } catch (error) {
     return response.status(500).json({
       success: false,
-      error: `Internal Server Error: ${
-        error instanceof Error ? error.message : error
-      }`,
+      error: `Internal Server Error: ${error instanceof Error ? error.message : error}`,
     });
   }
 };

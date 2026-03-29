@@ -1,36 +1,29 @@
 import cloudinary from '../config/cloudinary.config.js';
-export const getPublicIdFromUrl = (url, location) => {
-    const parts = url.split('/');
-    const filename = parts[parts.length - 1];
-    const nameWithoutExtension = filename.substring(0, filename.lastIndexOf('.'));
-    return `${location}/${nameWithoutExtension}`;
+import streamifier from "streamifier";
+export const deletePicture = async (imageUrl) => {
+  try {
+    if (!imageUrl) return;
+    const parts = imageUrl.split("/");
+    const publicIdWithExt = parts[parts.length - 1];
+    const publicId = `profile_photos/${publicIdWithExt.split(".")[0]}`;
+    await cloudinary.uploader.destroy(publicId);
+  } catch (error) {
+    return null;
+  }
 };
-export const deletePicture = async (url, location) => {
-    try {
-        const publicId = getPublicIdFromUrl(url, location);
-        const result = await cloudinary.uploader.destroy(publicId);
-        if (result.result === 'ok' || result.result === 'not found') {
-            return true;
+export const uploadPicture = (buffer) => {
+  return new Promise((resolve, reject) => {
+    if (!buffer) return reject("No buffer provided");
+    const stream = cloudinary.uploader.upload_stream(
+      { folder: "profile_photos" },
+      (error, result) => {
+        if (error) {
+          console.error("Cloudinary Error:", error);
+          return reject(error);
         }
-        return false;
-    } catch (error) {
-        return false;
-    }
-};
-export const uploadPicture = async (file, folder) => {
-    try {
-        const uploadResult = await new Promise((resolve, reject) => {
-            const stream = cloudinary.uploader.upload_stream(
-                { folder },
-                (error, result) => {
-                    if (error) return reject(error);
-                    resolve(result);
-                }
-            );
-            stream.end(file.buffer);
-        });
-        return uploadResult.secure_url || null;
-    } catch (error) {
-        return null;
-    }
+        resolve(result.secure_url); 
+      }
+    );
+    streamifier.createReadStream(buffer).pipe(stream);
+  });
 };

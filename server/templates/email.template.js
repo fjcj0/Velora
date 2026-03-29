@@ -78,9 +78,9 @@ export const PASSWORD_RESET_REQUEST_TEMPLATE = `
   <div style="background-color: #f9f9f9; padding: 20px; border-radius: 0 0 5px 5px; box-shadow: 0 2px 5px rgba(0,0,0,0.1);">
     <p>Hello,</p>
     <p>We received a request to reset your password. If you didn't make this request, please ignore this email.</p>
-    <p>To reset your password, write code below:</p>
+    <p>To reset your password, click on the link please:</p>
     <div style="text-align: center; margin: 30px 0;">
-      <span style="font-size: 32px; font-weight: bold; letter-spacing: 5px; color: #6573F7;">{resetPasswordCode}</span>
+      <a href="{resetPasswordCode}" style="font-size: 32px; font-weight: bold; letter-spacing: 5px; color: #6573F7;">Reset Password</a>
     </div>
     <p>This link will expire in 1 hour for security reasons.</p>
     <p>Best regards,<br>Your App Team</p>

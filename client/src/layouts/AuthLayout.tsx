@@ -1,21 +1,21 @@
 import AuthLink from "../components/links/AuthLink";
-import { Outlet, useLocation } from "react-router-dom";
+import { Link, Outlet, useLocation } from "react-router-dom";
 import { AnimatePresence, motion } from "framer-motion";
 const AuthLayout = () => {
   const location = useLocation();
-  if (location.pathname === '/auth') {
-    return <Outlet/>
+  if (location.pathname === "/auth") {
+    return <Outlet />;
   }
   return (
     <div className="w-screen min-h-screen bg-[#F3F4F5] flex items-center justify-center p-3">
       <div className="w-[80%] grid md:grid-cols-2 grid-cols-1 bg-white border border-[#E6E8E9] rounded-3xl h-[60rem] md:h-[44rem]">
-<div className="w-full h-full flex flex-col items-start justify-start">
-  <img
-    src="/logo.jpg"
-    alt="logo"
-    className="w-full h-full object-cover max-md:rounded-t-3xl md:rounded-l-3xl"
-  />
-</div>
+        <div className="w-full h-full flex flex-col items-start justify-start">
+          <img
+            src="/logo.jpg"
+            alt="logo"
+            className="w-full h-full object-cover max-md:rounded-t-3xl md:rounded-l-3xl"
+          />
+        </div>
         <div className="w-full flex flex-col items-center justify-center px-5 py-5 ">
           <div className="w-full flex items-start justify-start mb-2">
             <img src="/star.png" alt="star icon" className="w-14" />
@@ -53,6 +53,12 @@ const AuthLayout = () => {
             >
               <Outlet />
               <div className="w-full mt-3 flex items-center justify-center flex-col gap-3">
+                <Link
+                  to={"/forget-password"}
+                  className="self-start text-[12px] font-poppins font-[300] underline hover:opacity-50 duration-300 ease transition-all"
+                >
+                  Forgot Your Password?
+                </Link>
                 <div className="w-full flex items-center gap-3">
                   <div className="flex-1 h-[1px] bg-gray-300" />
                   <p className="text-gray-500 font-poppins text-sm font-[300]">

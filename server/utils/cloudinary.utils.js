@@ -1,29 +1,28 @@
 import cloudinary from '../config/cloudinary.config.js';
 import streamifier from "streamifier";
-export const deletePicture = async (imageUrl) => {
-  try {
-    if (!imageUrl) return;
-    const parts = imageUrl.split("/");
-    const publicIdWithExt = parts[parts.length - 1];
-    const publicId = `profile_photos/${publicIdWithExt.split(".")[0]}`;
-    await cloudinary.uploader.destroy(publicId);
-  } catch (error) {
-    return null;
-  }
-};
 export const uploadPicture = (buffer) => {
   return new Promise((resolve, reject) => {
     if (!buffer) return reject("No buffer provided");
+
     const stream = cloudinary.uploader.upload_stream(
-      { folder: "profile_photos" },
+      { folder: "velora" },
       (error, result) => {
         if (error) {
           console.error("Cloudinary Error:", error);
           return reject(error);
         }
-        resolve(result.secure_url); 
+        resolve({ url: result.secure_url, public_id: result.public_id });
       }
     );
     streamifier.createReadStream(buffer).pipe(stream);
   });
+};
+export const deletePicture = async (public_id) => {
+  try {
+    if (!public_id) return;
+    await cloudinary.uploader.destroy(public_id);
+  } catch (error) {
+    console.error("Cloudinary delete error:", error);
+    return null;
+  }
 };

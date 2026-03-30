@@ -2,7 +2,11 @@ import mongoose from "mongoose";
 const carSchema = new mongoose.Schema(
   {
     image: {
-      type: String,
+      type: String,      
+      required: true,
+    },
+    public_id: {
+      type: String,      
       required: true,
     },
     brand: {

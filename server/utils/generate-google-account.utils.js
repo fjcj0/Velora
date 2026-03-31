@@ -1,4 +1,4 @@
-import { usernameRegex } from "../auth.regax";
+import { passwordRegex, usernameRegex } from "../auth.regax.js";
 export const generateUsername = (name = "user") => {
   let username;
   do {

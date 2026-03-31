@@ -44,9 +44,9 @@ app.use(cors({
 }));
 app.use(xss_protection);
 app.use("/auth", authRoutes);
-app.use("/car",carRoutes);
-app.get("/test", (req, res) => {
-    return res.status(200).json({ success: true });
+app.use("/car", carRoutes);
+app.get("/test", (request, response) => {
+    return response.status(200).json({ success: true });
 });
 app.get("/csrf-token", csrf);
 connectToDB()

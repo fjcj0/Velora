@@ -1,6 +1,7 @@
-import AuthLink from "../components/links/AuthLink";
 import { Link, Outlet, useLocation } from "react-router-dom";
 import { AnimatePresence, motion } from "framer-motion";
+import AuthLink from "../components/links/AuthLink";
+import GoogleCustomButton from "../components/buttons/GoogleButton";
 const AuthLayout = () => {
   const location = useLocation();
   if (location.pathname === "/auth") {
@@ -66,13 +67,7 @@ const AuthLayout = () => {
                   </p>
                   <div className="flex-1 h-[1px] bg-gray-300" />
                 </div>
-                <button
-                  type="button"
-                  className="font-poppins font-[500] w-full flex items-center justify-center gap-1 p-3 rounded-xl border-[1px] border-gray-200"
-                >
-                  <img src="/google.png" alt="google icon" className="w-5" />
-                  Continue with Google
-                </button>
+                <GoogleCustomButton/>
               </div>
             </motion.div>
           </AnimatePresence>

@@ -10,18 +10,16 @@ export const xss_protection = (request, response, next) => {
   next();
 };
 export const csrfProtection = (request, response, next) => {
-  const csrfTokenCookie = request.cookies.csrfToken;
-  /*
+  const csrfTokenCookie = request.signedCookies.csrfToken;
   const csrfTokenHeader = xss(request.headers["x-csrf-token"]);
   if (!csrfTokenCookie || !csrfTokenHeader) {
-    return response.status(403).json({ message: "CSRF token missing" });
+    return response.status(403).json({ success: false,error: "CSRF token missing" });
   }
   if (csrfTokenCookie !== csrfTokenHeader) {
-    return response.status(403).json({ message: "Invalid CSRF token" });
+    return response.status(403).json({ success: false,error: "Invalid CSRF token" });
   }
-  */
   if (!csrfTokenCookie) {
-    return response.status(403).json({ message: "CSRF token missing" });
+    return response.status(403).json({ success: false,error: "CSRF token missing" });
   }
   next();
 };

@@ -6,7 +6,15 @@ import PageNotFound from "./tools/PageNotFound";
 import ForgetPasswordPage from "./pages/auth-pages/ForgetPasswordPage";
 import CodePage from "./pages/auth-pages/CodePage";
 import ResetPasswordPage from "./pages/auth-pages/ResetPasswordPage";
+import { useEffect } from "react";
+import { protectServer } from "./utils/protection.utils";
 function App() {
+  useEffect(() => {
+    const init = async () => {
+      await protectServer();
+    };
+    init();
+  }, []);
   return (
     <>
         <Routes>

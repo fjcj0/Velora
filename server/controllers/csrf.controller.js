@@ -2,9 +2,10 @@ import generateCsrfToken from '../utils/generateCsrfToken.utils.js';
 export const csrf = async (request, response) => {
     const csrfToken = generateCsrfToken();
     response.cookie("csrfToken", csrfToken, {
-        httpOnly: true,
+        httpOnly: process.env.NODE_ENV === 'production',
+        signed: true, 
         secure: process.env.NODE_ENV === 'production',
-        sameSite: process.env.NODE_ENV === 'production' ? 'Strict' : 'Lax',
+        sameSite: process.env.NODE_ENV === 'production' ? 'Strict' : 'Lax'
     });
     return response.status(201).json({ csrfToken });
 }

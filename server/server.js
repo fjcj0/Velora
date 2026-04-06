@@ -51,9 +51,9 @@ app.use(rateLimiter);
 app.use(speedLimiter);
 app.use(preventDuplicateWrites);
 app.use(xss_protection);
-app.use((req, res, next) => {
-  if (req.path === "/csrf-token") return next();
-  return csrfProtection(req, res, next);
+app.use((request, response, next) => {
+  if (request.path === "/csrf-token" || request.path === '/google' || request.path === '/google/callback') return next();
+  return csrfProtection(request, response, next);
 });
 app.use(passport.initialize());
 app.use("/auth", authRoutes);

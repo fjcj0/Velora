@@ -11,6 +11,7 @@ export const xss_protection = (request, response, next) => {
 };
 export const csrfProtection = (request, response, next) => {
   const csrfTokenCookie = request.signedCookies.csrfToken;
+  /*
   const csrfTokenHeader = xss(request.headers["x-csrf-token"]);
   if (!csrfTokenCookie || !csrfTokenHeader) {
     return response.status(403).json({ success: false,error: "CSRF token missing" });
@@ -18,6 +19,7 @@ export const csrfProtection = (request, response, next) => {
   if (csrfTokenCookie !== csrfTokenHeader) {
     return response.status(403).json({ success: false,error: "Invalid CSRF token" });
   }
+  */
   if (!csrfTokenCookie) {
     return response.status(403).json({ success: false,error: "CSRF token missing" });
   }

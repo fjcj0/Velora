@@ -1,6 +1,9 @@
 export const checkAiAccess = async (request, response, next) => {
     try {
         const { type } = request.body;
+        if (!request.user) {
+            return response.status(401).json({ success: false, error: "401 Unauthorized user" });
+        }
         if (type !== 'user' && type !== 'admin') {
             return response.status(400).json({
                 error: 'Invalid type',

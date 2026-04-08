@@ -21,6 +21,7 @@ import { preventDuplicateWrites } from "./middleware/tokenbucket.guard.js";
 import { connectToRedis } from "./config/redis.config.js";
 import passport from "./config/passport.config.js";
 import googleRoutes from "./routes/google.route.js";
+import job from "./config/cron.config.js";
 (async () => {
   try {
     await connectToRedis();
@@ -52,14 +53,16 @@ app.use(speedLimiter);
 app.use(preventDuplicateWrites);
 app.use(xss_protection);
 app.use((request, response, next) => {
-  if (request.path === "/csrf-token" || request.path === '/google' || request.path === '/google/callback') return next();
+  if (request.path === "/csrf-token" || request.path === '/google' || request.path === '/google/callback' || request.path === '/cron') return next();
   return csrfProtection(request, response, next);
 });
 app.use(passport.initialize());
+if(process.env.NODE_ENV !== 'development') job.start();
 app.use("/auth", authRoutes);
 app.use("/car", carRoutes);
 app.use(googleRoutes);
 app.get("/protect-server", (request, response) => response.status(200).json({ success: true }));
+app.get("/cron", (request, response) => response.status(200).json({ message: 'Cron job is working',success: true }));
 app.get("/csrf-token", csrf);
 connectToDB()
   .then(() => {

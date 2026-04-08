@@ -8,6 +8,7 @@ import cors from "cors";
 import cookieParser from "cookie-parser";
 import authRoutes from "./routes/auth.route.js";
 import carRoutes from "./routes/car.route.js";
+import aiRoutes from "./routes/ai.route.js";
 import connectToDB from "./config/connect.config.js";
 import {
   browserOnly,
@@ -61,6 +62,7 @@ if(process.env.NODE_ENV !== 'development') job.start();
 app.use("/auth", authRoutes);
 app.use("/car", carRoutes);
 app.use(googleRoutes);
+app.use(aiRoutes);
 app.get("/protect-server", (request, response) => response.status(200).json({ success: true }));
 app.get("/cron", (request, response) => response.status(200).json({ message: 'Cron job is working',success: true }));
 app.get("/csrf-token", csrf);

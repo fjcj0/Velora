@@ -1,5 +1,5 @@
-import { Car } from "../models/car.model";
-import { getRedis,setRedis} from '../utils/redis.utils';
+import { Car } from "../models/car.model.js";
+import { getRedis,setRedis} from '../utils/redis.utils.js';
 export async function getUserPrompt() {
   try {
     let cars = await getRedis('cars');

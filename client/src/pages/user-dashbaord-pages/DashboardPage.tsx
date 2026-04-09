@@ -1,9 +1,6 @@
-import Details from "../../components/dashboard-components/details";
 const DashboardPage = () => {
     return (
-        <div className="w-full flex flex-col">
-           <Details/>
-        </div>
+        <h1 className="text-white font-black text-3xl">Dashboard Page</h1>
     );
 }
 export default DashboardPage;

@@ -1,7 +1,7 @@
 import { List, ShoppingCart,Search } from 'lucide-react';
 const DashboardHeader = () => {
     return (
-        <div className="w-full py-4 px-3 flex items-center justify-between">
+        <div className="w-full py-6 px-8 flex items-center justify-between">
             <button type='button' className='md:hidden'>
                 <List color='#969696' size={15}/>
             </button>

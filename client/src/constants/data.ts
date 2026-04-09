@@ -75,10 +75,11 @@ export const messages = [
   },
   {
     type: "ai",
-    message: "Here are some great options for you 🚗 Which one do you like?",
+    message: "Here are some great options for you Which one do you like?",
     markdowns: [
       {
-        image: "https://images.unsplash.com/photo-1549924231-f129b911e442",
+        image:
+          "https://images.unsplash.com/photo-1619767886558-efdc259cde1a?auto=format&fit=crop&w=1200&q=80",
         brand: "Toyota",
         model: "Corolla",
         year: 2022,
@@ -87,10 +88,11 @@ export const messages = [
         fuel: "Petrol",
         transmission: "Automatic",
         location: "Nablus",
-        highlight: "Reliable, fuel-efficient, and perfect for daily driving",
+        description: "Reliable, fuel-efficient, and perfect for daily driving",
       },
       {
-        image: "https://images.unsplash.com/photo-1606611013016-969c19ba27bb",
+        image:
+          "https://images.unsplash.com/photo-1605559424843-9e4c228bf1c2?auto=format&fit=crop&w=1200&q=80",
         brand: "Hyundai",
         model: "Tucson",
         year: 2023,
@@ -99,7 +101,7 @@ export const messages = [
         fuel: "Petrol",
         transmission: "Automatic",
         location: "Ramallah",
-        highlight: "Spacious SUV with modern features and great comfort",
+        description: "Spacious SUV with modern features and great comfort",
       },
     ],
   },
@@ -110,10 +112,11 @@ export const messages = [
   {
     type: "ai",
     message:
-      "Got it 👍 I recommend this budget-friendly option. Would you like to book it?",
+      "Got it I recommend this budget-friendly option. Would you like to book it?",
     markdowns: [
       {
-        image: "https://images.unsplash.com/photo-1549924231-f129b911e442",
+        image:
+          "https://images.unsplash.com/photo-1619767886558-efdc259cde1a?auto=format&fit=crop&w=1200&q=80",
         brand: "Toyota",
         model: "Corolla",
         year: 2022,
@@ -122,7 +125,7 @@ export const messages = [
         fuel: "Petrol",
         transmission: "Automatic",
         location: "Nablus",
-        highlight: "Great value for money with excellent fuel efficiency",
+        description: "Great value for money with excellent fuel efficiency",
       },
     ],
   },

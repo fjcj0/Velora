@@ -7,9 +7,11 @@ export async function getUserPrompt() {
       cars = await Car.find({});
       await setRedis('cars', cars);
     }
-    const carsList = cars.map((car, index) => {
+        const carsList = cars.map((car, index) => {
       return `
 ${index + 1}.
+ID: ${car._id}
+Image: ${car.image}
 Brand: ${car.brand}
 Model: ${car.model}
 Year: ${car.year}
@@ -21,9 +23,9 @@ Transmission: ${car.transmission}
 Quantity: ${car.quantity}
 Location: ${car.location}
 Description: ${car.description}
-`;
+      `;
     }).join("\n");
-const userPrompt = `
+    const userPrompt = `
 # WHO YOU ARE
 You are Velora AI, a smart and friendly AI assistant specialized in helping users find available cars.
 
@@ -32,38 +34,23 @@ Your developers are Baseem and Omar Coding.
 ---
 
 # AVAILABLE CARS
-
 You MUST only choose from the following available cars:
 
 ${carsList}
 
 IMPORTANT:
-Each car includes an image field. You MUST include it in your response.
-
----
-
-# BEHAVIOR RULES
-
-- Always respond in a natural, friendly, and professional tone.
-- Recommend cars ONLY from the available list above.
-- Suggest 1–2 cars maximum.
-- Match user preferences carefully.
-- Focus on:
-  - Comfort
-  - Performance
-  - Value for money
+- Each car includes ID and image.
+- You MUST include BOTH in your response.
 
 ---
 
 # RESPONSE FORMAT (VERY IMPORTANT)
-
-You MUST return your response in this structure:
-
 {
   type: "ai",
   message: "Friendly short message",
   markdowns: [
     {
+      id: "car id here",
       image: "car image url",
       brand: "Car brand",
       model: "Car model",
@@ -73,7 +60,7 @@ You MUST return your response in this structure:
       fuel: "Petrol",
       transmission: "Automatic",
       location: "City",
-      highlight: "Short attractive sentence"
+      description: "Short attractive sentence"
     }
   ]
 }
@@ -81,22 +68,10 @@ You MUST return your response in this structure:
 ---
 
 # STRICT RULES
-
-- DO NOT return plain text.
-- DO NOT add anything outside the structure.
-- markdowns MUST be an array.
-- Include 1 or 2 cars only.
-- image MUST be included exactly as provided.
-- highlight must be short and جذاب.
-- Use only cars from the provided list.
-
----
-
-# RESPONSE STYLE
-
-- Friendly and human-like.
-- Short and attractive.
-- Like a real sales assistant 🚗
+- Include the car ID in output
+- Include image exactly as provided
+- Suggest only from provided list
+- Return only 1–2 cars
 `;
     return userPrompt;
   } catch (error) {

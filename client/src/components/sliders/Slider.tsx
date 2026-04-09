@@ -10,7 +10,7 @@ const Slider = () => {
         <div className="w-full flex items-center justify-center px-3">
           <img src="/logo.jpg" alt="logo" className="rounded-full" />
         </div>
-        <div className="w-full flex flex-col gap-y-6 items-center justify-center mt-17">
+        <div className="w-full flex flex-col gap-y-11 items-center justify-center mt-17">
           {dashboardLinks.map((link: any, index: number) => (
             <DashboardLink
               key={index}

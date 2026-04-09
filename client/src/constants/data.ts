@@ -68,3 +68,62 @@ export const carsDetails: {
     location: [51.5074, -0.1278],
   },
 ];
+export const messages = [
+  {
+    type: "user",
+    message: "What cars do you have?",
+  },
+  {
+    type: "ai",
+    message: "Here are some great options for you 🚗 Which one do you like?",
+    markdowns: [
+      {
+        image: "https://images.unsplash.com/photo-1549924231-f129b911e442",
+        brand: "Toyota",
+        model: "Corolla",
+        year: 2022,
+        price: 19000,
+        category: "Sedan",
+        fuel: "Petrol",
+        transmission: "Automatic",
+        location: "Nablus",
+        highlight: "Reliable, fuel-efficient, and perfect for daily driving",
+      },
+      {
+        image: "https://images.unsplash.com/photo-1606611013016-969c19ba27bb",
+        brand: "Hyundai",
+        model: "Tucson",
+        year: 2023,
+        price: 27000,
+        category: "SUV",
+        fuel: "Petrol",
+        transmission: "Automatic",
+        location: "Ramallah",
+        highlight: "Spacious SUV with modern features and great comfort",
+      },
+    ],
+  },
+  {
+    type: "user",
+    message: "I prefer something affordable",
+  },
+  {
+    type: "ai",
+    message:
+      "Got it 👍 I recommend this budget-friendly option. Would you like to book it?",
+    markdowns: [
+      {
+        image: "https://images.unsplash.com/photo-1549924231-f129b911e442",
+        brand: "Toyota",
+        model: "Corolla",
+        year: 2022,
+        price: 19000,
+        category: "Sedan",
+        fuel: "Petrol",
+        transmission: "Automatic",
+        location: "Nablus",
+        highlight: "Great value for money with excellent fuel efficiency",
+      },
+    ],
+  },
+];

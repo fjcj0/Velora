@@ -21,7 +21,6 @@ Fuel: ${car.fuel}
 Capacity: ${car.capacity}
 Transmission: ${car.transmission}
 Quantity: ${car.quantity}
-Location: ${car.location}
 Description: ${car.description}
       `;
     }).join("\n");
@@ -59,7 +58,6 @@ IMPORTANT:
       category: "Sedan",
       fuel: "Petrol",
       transmission: "Automatic",
-      location: "City",
       description: "Short attractive sentence"
     }
   ]

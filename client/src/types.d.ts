@@ -1,4 +1,5 @@
 type MarkdownItem = {
+  id: string;
   image: string;
   brand: string;
   model: string;

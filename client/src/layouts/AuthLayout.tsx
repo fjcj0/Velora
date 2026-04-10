@@ -9,7 +9,7 @@ const AuthLayout = () => {
   }
   return (
     <div className="w-screen min-h-screen bg-[#F3F4F5] flex items-center justify-center p-3">
-      <div className="w-[80%] grid md:grid-cols-2 grid-cols-1 bg-white border border-[#E6E8E9] rounded-3xl h-[60rem] md:h-[44rem]">
+      <div className="w-[80%] grid md:grid-cols-2 grid-cols-1 bg-white border border-[#E6E8E9] rounded-3xl h-auto md:h-[44rem]">
         <div className="w-full h-full flex flex-col items-start justify-start">
           <img
             src="/logo.jpg"

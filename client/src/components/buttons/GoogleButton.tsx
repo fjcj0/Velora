@@ -1,6 +1,9 @@
 const GoogleCustomButton = () => {
   return (
     <button
+      onClick={() => {
+          window.location.href = `${import.meta.env.VITE_SERVER_URL}/google`;
+      }}
       className="flex items-center justify-center w-full max-w-sm bg-white border border-gray-300 rounded-lg py-2 px-4 transition-all duration-150 text-gray-700 font-medium focus:outline-none"
     >
       <img

@@ -1,8 +1,10 @@
 import { List, ShoppingCart,Search } from 'lucide-react';
+import useSlideStore from '../../store/dashboard.store';
 const DashboardHeader = () => {
+    const { toggleSlide } = useSlideStore();
     return (
         <div className="w-full py-6 px-8 flex items-center justify-between">
-            <button type='button' className='md:hidden'>
+            <button type='button' className='cursor-pointer md:hidden' onClick={toggleSlide}>
                 <List color='#969696' size={15}/>
             </button>
             <div className='w-full relative max-md:hidden'>

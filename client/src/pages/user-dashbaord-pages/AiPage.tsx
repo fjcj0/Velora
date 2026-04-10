@@ -1,12 +1,13 @@
 import { useState, useRef, useEffect } from "react";
 import Message from "../../components/messages/Message";
-import { messages as messagesData } from "../../constants/data";
 import SpinnerAi from "../../components/spinners/SpinnerAi";
 import { ArrowUp } from "lucide-react";
+import api from "../../utils/api.utils";
 const AiPage = () => {
-const [messages, setMessages] = useState<MessageType[]>(
-  messagesData as MessageType[]
-);  const [isLoading, setIsLoading] = useState<boolean>(false);
+  const [messages, setMessages] = useState<MessageType[]>(
+    []
+  );
+  const [isLoading, setIsLoading] = useState<boolean>(false);
   const [value, setValue] = useState("");
   const textareaRef = useRef<HTMLTextAreaElement | null>(null);
   const messagesEndRef = useRef<HTMLDivElement | null>(null);
@@ -19,20 +20,25 @@ const [messages, setMessages] = useState<MessageType[]>(
   };
   const handleSend = async () => {
     if (!value.trim()) return;
+    const currentMessage = value;
     const userMessage: MessageType = {
       type: "user",
-      message: value,
+      message: currentMessage,
       markdowns: [],
     };
     setMessages((prev) => [...prev, userMessage]);
     setValue("");
     setIsLoading(true);
     try {
-      await new Promise((res) => setTimeout(res, 1000));
+      const response = await api.post("/ask-ai", {
+        type: "user",
+        message: currentMessage,
+      });
+      const data = response?.data?.result;
       const aiMessage: MessageType = {
         type: "ai",
-        message: "This is ai response",
-        markdowns: [],
+        message: data?.message || "No response",
+        markdowns: data?.markdowns || [],
       };
       setMessages((prev) => [...prev, aiMessage]);
     } catch (error) {
@@ -52,7 +58,7 @@ const [messages, setMessages] = useState<MessageType[]>(
   }, [messages, isLoading]);
   return (
     <div className="w-full h-full flex flex-col items-center justify-between gap-y-4 p-4">
-      <div className="w-full flex flex-col flex-1 min-h-0 overflow-y-auto gap-y-14">
+            <div className="w-full flex flex-col flex-1 min-h-0 overflow-y-auto gap-y-14">
         {messages.map((msg, idx) => (
           <Message
             key={idx}

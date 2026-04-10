@@ -16,9 +16,15 @@ export const AskAi = async (request, response) => {
       systemPrompt = await getAdminPrompt();
     }
     const result = await completion_ai(systemPrompt, message);
+    let parsedResult;
+try {
+  parsedResult = JSON.parse(result);
+} catch (error) {
+  parsedResult = result;
+}
     return response.status(200).json({
       success: true,
-      result,
+      result: parsedResult,
     });
   } catch (error) {
     return response.status(500).json({

@@ -19,6 +19,7 @@ export const findOrCreateUser = async (profile) => {
       username,
       password: hashedPassword,
       name,
+      isVerified: true
     });
   }
   return user;

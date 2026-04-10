@@ -77,7 +77,7 @@ const Message: React.FC<MessageType> = ({
         </p>
         <p className="mt-1">{car.description}</p>
         <div className="mt-4">
-          <Link to={'/cars'}
+          <Link to={`/car/${car.id}`}
             className="font-[300] cursor-pointer px-7 py-3 border border-white text-white hover:bg-white hover:text-black duration-300 ease transition-all flex items-center justify-center gap-x-1"
           >
             Borrow

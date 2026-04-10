@@ -4,9 +4,7 @@ import SpinnerAi from "../../components/spinners/SpinnerAi";
 import { ArrowUp } from "lucide-react";
 import api from "../../utils/api.utils";
 const AiPage = () => {
-  const [messages, setMessages] = useState<MessageType[]>(
-    []
-  );
+  const [messages, setMessages] = useState<MessageType[]>([]);
   const [isLoading, setIsLoading] = useState<boolean>(false);
   const [value, setValue] = useState("");
   const textareaRef = useRef<HTMLTextAreaElement | null>(null);
@@ -21,12 +19,10 @@ const AiPage = () => {
   const handleSend = async () => {
     if (!value.trim()) return;
     const currentMessage = value;
-    const userMessage: MessageType = {
-      type: "user",
-      message: currentMessage,
-      markdowns: [],
-    };
-    setMessages((prev) => [...prev, userMessage]);
+    setMessages((prev) => [
+      ...prev,
+      { type: "user", message: currentMessage, markdowns: [] },
+    ]);
     setValue("");
     setIsLoading(true);
     try {
@@ -35,12 +31,14 @@ const AiPage = () => {
         message: currentMessage,
       });
       const data = response?.data?.result;
-      const aiMessage: MessageType = {
-        type: "ai",
-        message: data?.message || "No response",
-        markdowns: data?.markdowns || [],
-      };
-      setMessages((prev) => [...prev, aiMessage]);
+      setMessages((prev) => [
+        ...prev,
+        {
+          type: "ai",
+          message: data?.message || "No response",
+          markdowns: data?.markdowns || [],
+        },
+      ]);
     } catch (error) {
       console.log(error);
     } finally {
@@ -57,8 +55,15 @@ const AiPage = () => {
     messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
   }, [messages, isLoading]);
   return (
-    <div className="w-full h-full flex flex-col items-center justify-between gap-y-4 p-4">
-            <div className="w-full flex flex-col flex-1 min-h-0 overflow-y-auto gap-y-14">
+    <div className="w-full h-full relative">
+      <div className="w-full h-full p-5 overflow-y-auto flex flex-col pb-20 gap-y-14">
+        {
+          messages.length === 0
+          &&
+          <div className="w-full h-full flex items-center justify-center">
+              <h1 className="text-white text-[40px] md:text-[55px] font-poppins font-bold">Hey how can i help you?</h1>
+          </div>
+        }
         {messages.map((msg, idx) => (
           <Message
             key={idx}
@@ -69,15 +74,15 @@ const AiPage = () => {
           />
         ))}
         {isLoading && (
-          <div className="flex items-center justify-start gap-x-1">
+          <div className="flex items-center gap-x-1">
             <img src="/logo.jpg" className="w-8 h-8 rounded-full" alt="" />
             <SpinnerAi />
           </div>
         )}
         <div ref={messagesEndRef} />
       </div>
-      <div className="w-full mt-2">
-        <div className="relative w-full">
+      <div className="absolute bottom-0 left-0 w-full flex justify-center">
+        <div className="relative md:w-[50%] w-[90%] py-3">
           <textarea
             ref={textareaRef}
             value={value}
@@ -85,16 +90,15 @@ const AiPage = () => {
             onKeyDown={handleKeyDown}
             rows={1}
             placeholder="ask anything"
-            className="w-full pl-5 pr-14 py-4 bg-[#212121] rounded-4xl outline-none border-none text-white font-[200] resize-none overflow-y-auto max-h-[200px]"
+            className="w-full pl-5 pr-14 py-4 bg-[#212121]/80 backdrop-blur-xs rounded-4xl outline-none border-none text-white font-[200] resize-none overflow-y-auto max-h-[200px]"
           />
           <button
-            type="button"
             onClick={handleSend}
             disabled={isLoading}
-            className={`right-3 hover:bg-white/70 duration-300 bottom-3.5 absolute flex rounded-full items-center justify-center w-10 h-10 ${
+            className={`right-3 bottom-6.5 absolute flex rounded-full items-center justify-center w-10 h-10 transition ${
               isLoading
-                ? "bg-white/70 cursor-default"
-                : "bg-white cursor-pointer"
+                ? "bg-white/70"
+                : "bg-white hover:bg-white/70"
             }`}
           >
             <ArrowUp size={20} />

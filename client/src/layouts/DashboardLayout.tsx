@@ -8,7 +8,7 @@ const DashboardLayout = () => {
    <div className="flex-1 flex flex-col min-h-0 bg-[#020711]">
   <DashboardHeader />
   <hr className="border-none h-[0.1px] opacity-30 bg-[#969696] w-full" />
-  <div className="flex-1 min-h-0 p-4 mt-2">
+  <div className="flex-1 min-h-0 mt-2">
     <Outlet />
   </div>
 </div>

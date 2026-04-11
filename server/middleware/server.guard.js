@@ -3,25 +3,51 @@ import rateLimit, { ipKeyGenerator } from "express-rate-limit";
 import slowDown from "express-slow-down";
 export const xss_protection = (request, response, next) => {
   const clean = (value) => (typeof value === "string" ? xss(value) : value);
-  for (let key in request.query) request.query[key] = clean(request.query[key]);
-  for (let key in request.body) request.body[key] = clean(request.body[key]);
-  for (let key in request.params)
-    request.params[key] = clean(request.params[key]);
+  if (request.query) {
+    for (let key in request.query)
+      request.query[key] = clean(request.query[key]);
+  }
+  if (request.body) {
+    for (let key in request.body)
+      request.body[key] = clean(request.body[key]);
+  }
+  if (request.params) {
+    for (let key in request.params)
+      request.params[key] = clean(request.params[key]);
+  }
   next();
 };
 export const csrfProtection = (request, response, next) => {
   const csrfTokenCookie = request.signedCookies.csrfToken;
-  /*
-  const csrfTokenHeader = xss(request.headers["x-csrf-token"]);
-  if (!csrfTokenCookie || !csrfTokenHeader) {
-    return response.status(403).json({ success: false,error: "CSRF token missing" });
+  if (process.env.NODE_ENV === 'production') {
+    const csrfTokenHeader = request.headers["x-csrf-token"];
+    if (!csrfTokenCookie || !csrfTokenHeader) {
+      return response.status(403).json({
+        success: false,
+        error: "CSRF token missing",
+      });
+    }
+    if (csrfTokenCookie !== csrfTokenHeader) {
+      return response.status(403).json({
+        success: false,
+        error: "Invalid CSRF token",
+      });
+    }
+  } else {
+      if (!csrfTokenCookie) {
+      return response.status(403).json({
+        success: false,
+        error: "Invalid CSRF token",
+      });
+    }
   }
-  if (csrfTokenCookie !== csrfTokenHeader) {
-    return response.status(403).json({ success: false,error: "Invalid CSRF token" });
-  }
-  */
-  if (!csrfTokenCookie) {
-    return response.status(403).json({ success: false,error: "CSRF token missing" });
+  const origin = request.headers.origin;
+  const allowedOrigin = process.env.CLIENT_URL;
+  if (origin && allowedOrigin && origin !== allowedOrigin) {
+    return response.status(403).json({
+      success: false,
+      error: "Invalid origin",
+    });
   }
   next();
 };
@@ -32,10 +58,14 @@ export const rateLimiter = rateLimit({
   legacyHeaders: false,
   keyGenerator: (request) => {
     const ipPart = ipKeyGenerator(request);
-    const uaPart = xss(request.headers["user-agent"] || "unknown");
-    return `${ipPart}|${uaPart}`;
+    return `${ipPart}`;
   },
-  message: { success: false, message: "Too many requests" },
+  skipSuccessfulRequests: false,
+  skipFailedRequests: false,
+  message: {
+    success: false,
+    message: "Too many requests",
+  },
 });
 export const speedLimiter = slowDown({
   windowMs: 15 * 60 * 1000,
@@ -61,12 +91,21 @@ export const browserOnly = (request, response, next) => {
   if (!/PostmanRuntime/i.test(userAgent)) {
     const requiredHeaders = ["accept", "accept-language", "sec-fetch-site"];
     for (const header of requiredHeaders) {
-      if (!xss(request.headers[header])) {
+      if (!request.headers[header]) {
         return response.status(403).json({
           success: false,
           message: "Invalid browser request",
         });
       }
+    }
+  }
+  next();
+};
+export const protectFromReverseHttp = (request, response, next) => {
+  if (process.env.NODE_ENV === "development") {
+    const allowed = ["127.0.0.1", "::1", "::ffff:127.0.0.1"];
+    if (!allowed.includes(request.socket.remoteAddress)) {
+      return response.status(403).send("Forbidden");
     }
   }
   next();

@@ -3,82 +3,76 @@ import bcrypt from "bcryptjs";
 import { generateTokenAndSetCookie } from "../utils/generateTokenAndSetCookie.utils.js";
 import crypto from "crypto";
 import { sendPasswordResetEmail, sendVerificationEmail, sendWelcomeEmail } from "../email/email.js";
-import {
-  emailRegex,
-  nameRegex,
-  passwordRegex,
-  usernameRegex,
-} from "../auth.regax.js";
+import { emailRegex, nameRegex, passwordRegex, usernameRegex } from "../auth.regax.js";
 import { deleteRedis, setRedis } from "../utils/redis.utils.js";
 import { sanitizeUser } from "../utils/sanitize.utils.js";
-import { uploadPicture,deletePicture } from '../utils/cloudinary.utils.js';
+import { uploadPicture, deletePicture } from "../utils/cloudinary.utils.js";
+import xss from "xss";
 export const checkAuth = async (request, response) => {
   try {
     if (request.user) {
       return response.status(200).json({
         success: true,
-        user: request.user,
+        user: request.user
       });
     }
     return response.status(401).json({
       success: false,
-      error: "401 unauthorized user",
+      error: "401 unauthorized user"
     });
   } catch (error) {
     return response.status(500).json({
       success: false,
-      error: `Internal Server Error: ${
-        error instanceof Error ? error.message : error
-      }`,
+      error: `Internal Server Error: ${error instanceof Error ? error.message : error}`
     });
   }
 };
 export const login = async (request, response) => {
   try {
-    const { email, password } = request.body;
+    let email = xss(request.body.email || "");
+    let password = xss(request.body.password || "");
     if (!email || !password) {
-      return response
-        .status(400)
-        .json({ success: false, error: "email and password are required" });
+      return response.status(400).json({
+        success: false,
+        error: "email and password are required"
+      });
     }
     if (!emailRegex.test(email)) {
       return response.status(400).json({
         success: false,
-        error: "Please provide a valid email address.",
+        error: "Please provide a valid email address."
       });
     }
     if (!passwordRegex.test(password)) {
       return response.status(400).json({
         success: false,
-        error:
-          "Password must be at least 8 characters long and include at least one uppercase letter, one lowercase letter, one number, and one symbol.",
+        error: "Password must be at least 8 characters long and include at least one uppercase letter, one lowercase letter, one number, and one symbol."
       });
     }
     const user = await User.findOne({ email });
     if (!user) {
-      return response
-        .status(401)
-        .json({ success: false, error: "user or password invalid" });
+      return response.status(401).json({
+        success: false,
+        error: "user or password invalid"
+      });
     }
     const isPassWordMatched = await bcrypt.compare(password, user.password);
     if (!isPassWordMatched) {
-      return response
-        .status(401)
-        .json({ success: false, error: "user or password invalid" });
+      return response.status(401).json({
+        success: false,
+        error: "user or password invalid"
+      });
     }
     if (user.isVerified) {
       await generateTokenAndSetCookie(response, user);
-      const { password, verificationToken, verificationCode, ...safeUser } =
-        user._doc;
+      const { password, verificationToken, verificationCode, ...safeUser } = user._doc;
       return response.status(200).json({
         success: true,
-        user: safeUser,
+        user: safeUser
       });
     }
     const verificationToken = crypto.randomBytes(32).toString("hex");
-    const verificationCode = Math.floor(
-      100000 + Math.random() * 900000,
-    ).toString();
+    const verificationCode = Math.floor(100000 + Math.random() * 900000).toString();
     user.verificationCode = verificationCode;
     user.verificationToken = verificationToken;
     user.expiredAt = new Date(Date.now() + 60 * 60 * 1000);
@@ -87,72 +81,69 @@ export const login = async (request, response) => {
     await sendVerificationEmail(email, verificationCode);
     return response.status(200).json({
       success: true,
-      message: `The code has been sent to your email, Check it`,
-      verificationToken,
+      message: "The code has been sent to your email, Check it",
+      verificationToken
     });
   } catch (error) {
     return response.status(500).json({
       success: false,
-      error: `Internal Server Error: ${
-        error instanceof Error ? error.message : error
-      }`,
+      error: `Internal Server Error: ${error instanceof Error ? error.message : error}`
     });
   }
 };
 export const register = async (request, response) => {
   try {
-    const { name, email, password, username, confirm_password } = request.body;
+    let name = xss(request.body.name || "");
+    let email = xss(request.body.email || "");
+    let password = xss(request.body.password || "");
+    let username = xss(request.body.username || "");
+    let confirm_password = xss(request.body.confirm_password || "");
     if (!email || !password || !username || !name || !confirm_password) {
-      return response
-        .status(400)
-        .json({ success: false, error: "all fields are required" });
+      return response.status(400).json({
+        success: false,
+        error: "all fields are required"
+      });
     }
     if (confirm_password !== password) {
       return response.status(400).json({
         success: false,
-        error: "The passwords are not the same",
+        error: "The passwords are not the same"
       });
     }
     if (!nameRegex.test(name)) {
       return response.status(400).json({
         success: false,
-        error:
-          "Name must be 1 to 4 words, each at least 3 letters, using Arabic or English letters only.",
+        error: "Name must be 1 to 4 words, each at least 3 letters, using Arabic or English letters only."
       });
     }
     if (!usernameRegex.test(username)) {
       return response.status(400).json({
         success: false,
-        error:
-          "Username must start with a letter, be at least 4 characters, and can include letters, numbers, underscores or dots.",
+        error: "Username must start with a letter, be at least 4 characters, and can include letters, numbers, underscores or dots."
       });
     }
     if (!emailRegex.test(email)) {
       return response.status(400).json({
         success: false,
-        error: "Please provide a valid email address.",
+        error: "Please provide a valid email address."
       });
     }
     if (!passwordRegex.test(password)) {
       return response.status(400).json({
         success: false,
-        error:
-          "Password must be at least 8 characters long and include at least one uppercase letter, one lowercase letter, one number, and one symbol.",
+        error: "Password must be at least 8 characters long and include at least one uppercase letter, one lowercase letter, one number, and one symbol."
       });
     }
-    const existingUser = await User.findOne({
-      $or: [{ email }, { username }],
-    });
+    const existingUser = await User.findOne({ $or: [{ email }, { username }] });
     if (existingUser) {
-      return response
-        .status(400)
-        .json({ success: false, error: "user already exists" });
+      return response.status(400).json({
+        success: false,
+        error: "user already exists"
+      });
     }
     const hashedPassword = await bcrypt.hash(password, 10);
     const verificationToken = crypto.randomBytes(32).toString("hex");
-    const verificationCode = Math.floor(
-      100000 + Math.random() * 900000,
-    ).toString();
+    const verificationCode = Math.floor(100000 + Math.random() * 900000).toString();
     const expiredAt = new Date(Date.now() + 60 * 60 * 1000);
     const resendAfter = new Date(Date.now() + 60 * 1000);
     const newUser = new User({
@@ -163,42 +154,43 @@ export const register = async (request, response) => {
       verificationCode,
       verificationToken,
       expiredAt,
-      resendAfter,
+      resendAfter
     });
     await newUser.save();
     await sendVerificationEmail(email, verificationCode);
     return response.status(201).json({
       success: true,
-      message: `The code has been sent to your email, Check it`,
-      verificationToken,
+      message: "The code has been sent to your email, Check it",
+      verificationToken
     });
   } catch (error) {
     return response.status(500).json({
       success: false,
-      error: `Internal Server Error: ${
-        error instanceof Error ? error.message : error
-      }`,
+      error: `Internal Server Error: ${error instanceof Error ? error.message : error}`
     });
   }
 };
 export const checkPage = async (request, response) => {
   try {
-    const { verificationToken } = request.params;
+    let verificationToken = xss(request.params.verificationToken || "");
     if (!verificationToken) {
-      return response
-        .status(400)
-        .json({ success: false, error: "all fields are required" });
+      return response.status(400).json({
+        success: false,
+        error: "all fields are required"
+      });
     }
     const user = await User.findOne({ verificationToken });
     if (!user) {
-      return response
-        .status(400)
-        .json({ success: false, error: "invalid token" });
+      return response.status(400).json({
+        success: false,
+        error: "invalid token"
+      });
     }
     if (user.expiredAt < new Date()) {
-      return response
-        .status(400)
-        .json({ success: false, error: "token expired" });
+      return response.status(400).json({
+        success: false,
+        error: "token expired"
+      });
     }
     let resendAfterSeconds = 0;
     if (user.resendAfter) {
@@ -208,40 +200,43 @@ export const checkPage = async (request, response) => {
     return response.status(200).json({
       success: true,
       resendAfterSeconds,
-      message: "Token verified successfully",
+      message: "Token verified successfully"
     });
   } catch (error) {
     return response.status(500).json({
       success: false,
-      error: `Internal Server Error: ${
-        error instanceof Error ? error.message : error
-      }`,
+      error: `Internal Server Error: ${error instanceof Error ? error.message : error}`
     });
   }
 };
 export const checkCode = async (request, response) => {
   try {
-    const { verificationCode, verificationToken } = request.body;
+    let verificationCode = xss(request.body.verificationCode || "");
+    let verificationToken = xss(request.body.verificationToken || "");
     if (!verificationCode || !verificationToken) {
-      return response
-        .status(400)
-        .json({ success: false, error: "all fields are required" });
+      return response.status(400).json({
+        success: false,
+        error: "all fields are required"
+      });
     }
     const user = await User.findOne({ verificationToken });
     if (!user) {
-      return response
-        .status(400)
-        .json({ success: false, error: "invalid token" });
+      return response.status(400).json({
+        success: false,
+        error: "invalid token"
+      });
     }
     if (user.verificationCode !== verificationCode) {
-      return response
-        .status(400)
-        .json({ success: false, error: "invalid code" });
+      return response.status(400).json({
+        success: false,
+        error: "invalid code"
+      });
     }
     if (user.expiredAt < new Date()) {
-      return response
-        .status(400)
-        .json({ success: false, error: "token expired" });
+      return response.status(400).json({
+        success: false,
+        error: "token expired"
+      });
     }
     user.isVerified = true;
     user.verificationCode = null;
@@ -253,39 +248,38 @@ export const checkCode = async (request, response) => {
     await sendWelcomeEmail(user.email, user.name);
     return response.status(200).json({
       success: true,
-      message: "email verified successfully",
+      message: "email verified successfully"
     });
   } catch (error) {
     return response.status(500).json({
       success: false,
-      error: `Internal Server Error: ${
-        error instanceof Error ? error.message : error
-      }`,
+      error: `Internal Server Error: ${error instanceof Error ? error.message : error}`
     });
   }
 };
 export const resendCode = async (request, response) => {
   try {
-    const { verificationToken } = request.body;
+    let verificationToken = xss(request.body.verificationToken || "");
     if (!verificationToken) {
-      return response
-        .status(400)
-        .json({ success: false, error: "all fields are required" });
+      return response.status(400).json({
+        success: false,
+        error: "all fields are required"
+      });
     }
     const user = await User.findOne({ verificationToken });
     if (!user) {
-      return response
-        .status(400)
-        .json({ success: false, error: "invalid token" });
+      return response.status(400).json({
+        success: false,
+        error: "invalid token"
+      });
     }
     if (user.resendAfter && user.resendAfter.getTime() > Date.now()) {
-      return response
-        .status(400)
-        .json({ success: false, error: "Wait 60 seconds" });
+      return response.status(400).json({
+        success: false,
+        error: "Wait 60 seconds"
+      });
     }
-    const verificationCode = Math.floor(
-      100000 + Math.random() * 900000,
-    ).toString();
+    const verificationCode = Math.floor(100000 + Math.random() * 900000).toString();
     user.resendAfter = new Date(Date.now() + 60 * 1000);
     user.expiredAt = new Date(Date.now() + 60 * 60 * 1000);
     user.verificationCode = verificationCode;
@@ -293,50 +287,50 @@ export const resendCode = async (request, response) => {
     await sendVerificationEmail(user.email, verificationCode);
     return response.status(200).json({
       success: true,
-      message: `The code has been sent successfully to your email`,
+      message: "The code has been sent successfully to your email"
     });
   } catch (error) {
     return response.status(500).json({
       success: false,
-      error: `Internal Server Error: ${
-        error instanceof Error ? error.message : error
-      }`,
+      error: `Internal Server Error: ${error instanceof Error ? error.message : error}`
     });
   }
 };
 export const logout = async (request, response) => {
   try {
-      await deleteRedis(request.user._id);
-      response.clearCookie('token');
-      return response.status(200).json({ success: true, message: "you have been logged out successfully!!" });
+    await deleteRedis(request.user._id);
+    response.clearCookie("token");
+    return response.status(200).json({
+      success: true,
+      message: "you have been logged out successfully!!"
+    });
   } catch (error) {
-        return response.status(500).json({
+    return response.status(500).json({
       success: false,
-      error: `Internal Server Error: ${
-        error instanceof Error ? error.message : error
-      }`,
+      error: `Internal Server Error: ${error instanceof Error ? error.message : error}`
     });
   }
 };
 export const resetPassword = async (request, response) => {
   try {
-    const { email } = request.body;
+    let email = xss(request.body.email || "");
     if (!email) {
-      return response
-        .status(400)
-        .json({ success: false, error: "email is required" });
+      return response.status(400).json({
+        success: false,
+        error: "email is required"
+      });
     }
     if (!emailRegex.test(email)) {
       return response.status(400).json({
         success: false,
-        error: "Please provide a valid email address.",
+        error: "Please provide a valid email address."
       });
     }
     const user = await User.findOne({ email });
     if (!user) {
       return response.status(200).json({
         success: true,
-        message: "If this email exists, a reset link has been sent",
+        message: "If this email exists, a reset link has been sent"
       });
     }
     const resetPasswordToken = crypto.randomBytes(32).toString("hex");
@@ -347,47 +341,43 @@ export const resetPassword = async (request, response) => {
     await sendPasswordResetEmail(user.email, resetURL);
     return response.status(200).json({
       success: true,
-      message: "Password reset link sent successfully",
+      message: "Password reset link sent successfully"
     });
   } catch (error) {
     return response.status(500).json({
       success: false,
-      error: `Internal Server Error: ${
-        error instanceof Error ? error.message : error
-      }`,
+      error: `Internal Server Error: ${error instanceof Error ? error.message : error}`
     });
   }
 };
 export const resetPasswordConfirm = async (request, response) => {
   try {
-    const { token } = request.params;
-    const { password } = request.body;
+    let token = xss(request.params.token || "");
+    let password = xss(request.body.password || "");
     if (!password) {
       return response.status(400).json({
         success: false,
-        error: "Password is required",
+        error: "Password is required"
       });
     }
     if (!passwordRegex.test(password)) {
-         return response.status(400).json({
+      return response.status(400).json({
         success: false,
-        error:
-          "Password must be at least 8 characters long and include at least one uppercase letter, one lowercase letter, one number, and one symbol.",
+        error: "Password must be at least 8 characters long and include at least one uppercase letter, one lowercase letter, one number, and one symbol."
       });
     }
-    const user = await User.findOne({
-      resetPasswordToken: token,
-    });
+    const user = await User.findOne({ resetPasswordToken: token });
     if (!user) {
       return response.status(400).json({
         success: false,
-        error: "Invalid or expired token",
+        error: "Invalid or expired token"
       });
     }
     if (user.resetPasswordExpires.getTime() < Date.now()) {
-      return response
-        .status(400)
-        .json({ success: false, error: "token expired" });
+      return response.status(400).json({
+        success: false,
+        error: "token expired"
+      });
     }
     const hashedPassword = await bcrypt.hash(password, 10);
     user.password = hashedPassword;
@@ -396,64 +386,57 @@ export const resetPasswordConfirm = async (request, response) => {
     await user.save();
     return response.status(200).json({
       success: true,
-      message: "Password has been reset successfully",
+      message: "Password has been reset successfully"
     });
   } catch (error) {
     return response.status(500).json({
       success: false,
-      error: `Internal Server Error: ${
-        error instanceof Error ? error.message : error
-      }`,
+      error: `Internal Server Error: ${error instanceof Error ? error.message : error}`
     });
   }
 };
 export const checkResetPasswordPage = async (request, response) => {
   try {
-    const { token } = request.params;
-    const user = await User.findOne({
-      resetPasswordToken: token,
-    });
+    let token = xss(request.params.token || "");
+    const user = await User.findOne({ resetPasswordToken: token });
     if (!user) {
       return response.status(400).json({
         success: false,
-        error: "Invalid or expired token",
+        error: "Invalid or expired token"
       });
     }
     if (user.resetPasswordExpires.getTime() < new Date()) {
-      return response
-        .status(400)
-        .json({ success: false, error: "token expired" });
+      return response.status(400).json({
+        success: false,
+        error: "token expired"
+      });
     }
     await user.save();
     return response.status(200).json({
       success: true,
-      resetPasswordToken: token,
+      resetPasswordToken: token
     });
   } catch (error) {
     return response.status(500).json({
       success: false,
-      error: `Internal Server Error: ${
-        error instanceof Error ? error.message : error
-      }`,
+      error: `Internal Server Error: ${error instanceof Error ? error.message : error}`
     });
   }
 };
 export const updateUser = async (request, response) => {
   try {
-    const { name, username, bio } = request.body;
+    let name = xss(request.body.name || "");
+    let username = xss(request.body.username || "");
+    let bio = xss(request.body.bio || "");
     const updateFields = {};
     if (name) updateFields.name = name;
     if (username) updateFields.username = username;
     if (bio) updateFields.bio = bio;
-    let updatedUser = await User.findByIdAndUpdate(
-      request.user._id,
-      { $set: updateFields },
-      { new: true, runValidators: true },
-    );
+    let updatedUser = await User.findByIdAndUpdate(request.user._id, { $set: updateFields }, { new: true, runValidators: true });
     if (!updatedUser) {
       return response.status(404).json({
         success: false,
-        error: "User not found",
+        error: "User not found"
       });
     }
     updatedUser = sanitizeUser(updatedUser);
@@ -461,12 +444,12 @@ export const updateUser = async (request, response) => {
     return response.status(200).json({
       success: true,
       message: "User updated successfully",
-      user: updatedUser,
+      user: updatedUser
     });
   } catch (error) {
     return response.status(500).json({
       success: false,
-      error: `Internal Server Error: ${error instanceof Error ? error.message : error}`,
+      error: `Internal Server Error: ${error instanceof Error ? error.message : error}`
     });
   }
 };
@@ -483,7 +466,7 @@ export const updateProfilePhoto = async (request, response) => {
     if (!result) {
       return response.status(400).json({
         success: false,
-        error: "Failed to upload picture",
+        error: "Failed to upload picture"
       });
     }
     if (user.profilePhoto) {
@@ -496,12 +479,12 @@ export const updateProfilePhoto = async (request, response) => {
     return response.status(200).json({
       success: true,
       message: "Your profile photo uploaded successfully",
-      user,
+      user
     });
   } catch (error) {
     return response.status(500).json({
       success: false,
-      error: `Internal Server Error: ${error instanceof Error ? error.message : error}`,
+      error: `Internal Server Error: ${error instanceof Error ? error.message : error}`
     });
   }
 };

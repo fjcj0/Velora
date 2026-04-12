@@ -1,21 +1,49 @@
 import xss from "xss";
 import rateLimit, { ipKeyGenerator } from "express-rate-limit";
 import slowDown from "express-slow-down";
-export const xss_protection = (request, response, next) => {
-  const clean = (value) => (typeof value === "string" ? xss(value) : value);
-  if (request.query) {
-    for (let key in request.query)
-      request.query[key] = clean(request.query[key]);
-  }
-  if (request.body) {
-    for (let key in request.body)
-      request.body[key] = clean(request.body[key]);
-  }
-  if (request.params) {
-    for (let key in request.params)
-      request.params[key] = clean(request.params[key]);
-  }
-  next();
+export const validateWhitelist = (schema = { body: [], query: [], params: [] }) => {
+  return (request, response, next) => {
+    const sanitizeObject = (obj) => {
+      if (!obj) return obj;
+      const cleaned = {};
+      Object.keys(obj).forEach((key) => {
+        if (typeof obj[key] === "string") {
+          cleaned[key] = xss(obj[key]);
+        } else {
+          cleaned[key] = obj[key];
+        }
+      });
+      return cleaned;
+    };
+    const body = sanitizeObject(request.body);
+    const query = sanitizeObject(request.query);
+    const params = sanitizeObject(request.params);
+    const collectInvalid = (source, allowed, sourceName) => {
+      return Object.keys(source || {})
+        .filter((key) => !allowed.includes(key))
+        .map((key) => `${sourceName}.${key}`);
+    };
+    if ( ((schema.body || []).length === 0 && Object.keys(body || {}).length > 0) ||
+      ((schema.query || []).length === 0 && Object.keys(query || {}).length > 0) ||
+      ((schema.params || []).length === 0 && Object.keys(params || {}).length > 0)) {
+      return res.status(400).json({
+        success: false,
+        error: "Invalid fields: unexpected data sent",
+      });
+    }
+    const invalidFields = [
+      ...collectInvalid(body, schema.body || [], "body"),
+      ...collectInvalid(query, schema.query || [], "query"),
+      ...collectInvalid(params, schema.params || [], "params"),
+    ];
+    if (invalidFields.length > 0) {
+      return res.status(400).json({
+        success: false,
+        error: `Invalid fields: ${invalidFields.join(", ")}`,
+      });
+    }
+    next();
+  };
 };
 export const csrfProtection = (request, response, next) => {
   const csrfTokenCookie = request.signedCookies.csrfToken;

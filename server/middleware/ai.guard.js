@@ -1,6 +1,8 @@
+import xss from "xss";
 export const checkAiAccess = async (request, response, next) => {
     try {
-        const { type } = request.body;
+        let { type } = request.body;
+        type = xss(type);
         if (!request.user) {
             return response.status(401).json({ success: false, error: "401 Unauthorized user" });
         }

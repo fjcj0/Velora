@@ -19,7 +19,7 @@ import {
   protectFromReverseHttp,
   rateLimiter,
   speedLimiter,
-  xss_protection,
+  validateWhitelist,
 } from "./middleware/server.guard.js";
 import { csrf } from "./controllers/csrf.controller.js";
 import { preventDuplicateWrites } from "./middleware/tokenbucket.guard.js";
@@ -59,7 +59,6 @@ app.use(protectFromReverseHttp);
 app.use(rateLimiter);
 app.use(speedLimiter);
 app.use(preventDuplicateWrites);
-app.use(xss_protection);
 app.use(browserOnly);
 app.use((request, response, next) => {
   if (request.method === "GET" || request.path === "/csrf-token" || request.path === "/google" || request.path === "/google/callback" || request.path === "/cron") {
@@ -72,13 +71,13 @@ app.use("/auth", authRoutes);
 app.use("/car", carRoutes);
 app.use(googleRoutes);
 app.use(aiRoutes);
-app.get("/protect-server", (request, response) =>
+app.get("/protect-server", validateWhitelist({body:[],query:[],params:[]}), (request, response) =>
   response.status(200).json({ success: true })
 );
-app.get("/cron", (request, response) =>
+app.get("/cron", validateWhitelist({body:[],query:[],params:[]}), (request, response) =>
   response.status(200).json({ message: "Cron job is working", success: true })
 );
-app.get("/csrf-token", csrf);
+app.get("/csrf-token", validateWhitelist({body:[],query:[],params:[]}), csrf);
 if(process.env.NODE_ENV === 'production') job.start();
 connectToDB()
   .then(() => {

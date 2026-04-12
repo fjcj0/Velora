@@ -1,8 +1,11 @@
+import xss from "xss";
 import { getUserPrompt, getAdminPrompt } from "../prompts/ai.prompt.js";
 import { completion_ai } from "../services/ai.service.js";
 export const AskAi = async (request, response) => {
   try {
-    const { message, type } = request.body;
+    let { message, type } = request.body;
+    message = xss(message);
+    type = xss(type);
     if (!type || !message) {
       return response.status(400).json({
         error: "All fields are required..",

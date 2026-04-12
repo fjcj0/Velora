@@ -24,6 +24,7 @@ import {
 import { csrf } from "./controllers/csrf.controller.js";
 import { preventDuplicateWrites } from "./middleware/tokenbucket.guard.js";
 import { connectToRedis } from "./config/redis.config.js";
+import mongoSanitize from "express-mongo-sanitize";
 (async () => {
   try {
     await connectToRedis();
@@ -55,6 +56,7 @@ app.use(
 app.use(cookieParser(process.env.COOKIE_SECRET));
 app.use(express.json({ limit: "10mb" }));
 app.use(express.urlencoded({ extended: true, limit: "10mb" }));
+app.use(mongoSanitize());
 app.use(protectFromReverseHttp);
 app.use(rateLimiter);
 app.use(speedLimiter);

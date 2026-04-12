@@ -3,43 +3,39 @@ import rateLimit, { ipKeyGenerator } from "express-rate-limit";
 import slowDown from "express-slow-down";
 export const validateWhitelist = (schema = { body: [], query: [], params: [] }) => {
   return (request, response, next) => {
-    const sanitizeObject = (obj) => {
-      if (!obj) return obj;
-      const cleaned = {};
-      Object.keys(obj).forEach((key) => {
-        if (typeof obj[key] === "string") {
-          cleaned[key] = xss(obj[key]);
-        } else {
-          cleaned[key] = obj[key];
-        }
-      });
-      return cleaned;
+    const sanitizeDeep = (value) => {
+      if (typeof value === "string") {
+        return xss(value);
+      }
+      if (Array.isArray(value)) {
+        return value.map(sanitizeDeep);
+      }
+      if (value && typeof value === "object") {
+        const cleaned = {};
+        Object.keys(value).forEach((key) => {
+          cleaned[key] = sanitizeDeep(value[key]);
+        });
+        return cleaned;
+      }
+      return value;
     };
-    const body = sanitizeObject(request.body);
-    const query = sanitizeObject(request.query);
-    const params = sanitizeObject(request.params);
-    const collectInvalid = (source, allowed, sourceName) => {
-      return Object.keys(source || {})
-        .filter((key) => !allowed.includes(key))
-        .map((key) => `${sourceName}.${key}`);
+    const body = sanitizeDeep(request.body);
+    const query = sanitizeDeep(request.query);
+    const params = sanitizeDeep(request.params);
+    const collectInvalid = (source, allowed) => {
+      return Object.keys(source || {}).filter(
+        (key) => !allowed.includes(key)
+      );
     };
-    if ( ((schema.body || []).length === 0 && Object.keys(body || {}).length > 0) ||
-      ((schema.query || []).length === 0 && Object.keys(query || {}).length > 0) ||
-      ((schema.params || []).length === 0 && Object.keys(params || {}).length > 0)) {
-      return res.status(400).json({
-        success: false,
-        error: "Invalid fields: unexpected data sent",
-      });
-    }
     const invalidFields = [
-      ...collectInvalid(body, schema.body || [], "body"),
-      ...collectInvalid(query, schema.query || [], "query"),
-      ...collectInvalid(params, schema.params || [], "params"),
+      ...collectInvalid(body, schema.body || []),
+      ...collectInvalid(query, schema.query || []),
+      ...collectInvalid(params, schema.params || [])
     ];
     if (invalidFields.length > 0) {
-      return res.status(400).json({
+      return response.status(400).json({
         success: false,
-        error: `Invalid fields: ${invalidFields.join(", ")}`,
+        error: `Invalid fields: ${invalidFields.join(", ")}`
       });
     }
     next();

@@ -19,7 +19,7 @@ import {
   protectFromReverseHttp,
   rateLimiter,
   speedLimiter,
-  validateWhitelist,
+  validateWhitelist
 } from "./middleware/server.guard.js";
 import { csrf } from "./controllers/csrf.controller.js";
 import { preventDuplicateWrites } from "./middleware/tokenbucket.guard.js";
@@ -38,18 +38,34 @@ morgan.token("client-ip", (request) => request.ip);
 app.use(
   morgan("➜ :method :url :status :response-time ms - :res[content-length] - :client-ip")
 );
-app.use(helmet());
-app.use((request, response, next) => {
-  response.setHeader("X-Content-Type-Options", "nosniff");
-  response.setHeader("X-Frame-Options", "DENY");
-  response.setHeader("Referrer-Policy", "no-referrer");
-  next();
-});
+app.use(
+  helmet({
+    hidePoweredBy: true,
+    noSniff: true,
+    frameguard: { action: "deny" },
+    crossOriginResourcePolicy: { policy: "same-site" },
+    crossOriginOpenerPolicy: { policy: "same-origin" },
+    crossOriginEmbedderPolicy: false
+  })
+);
+app.use(
+  helmet.contentSecurityPolicy({
+    directives: {
+      defaultSrc: ["'self'"],
+      connectSrc: ["'self'", "http://localhost:5173"],
+      scriptSrc: ["'self'"],
+      styleSrc: ["'self'", "'unsafe-inline'"],
+      imgSrc: ["'self'", "data:", "https:"],
+      objectSrc: ["'none'"],
+      frameAncestors: ["'none'"]
+    }
+  })
+);
 app.use(
   cors({
     origin: "http://localhost:5173",
     credentials: true,
-    methods: ["GET", "POST", "PUT", "DELETE", "PATCH", "OPTIONS"],
+    methods: ["GET", "POST", "PUT", "DELETE", "PATCH", "OPTIONS"]
   })
 );
 app.use(cookieParser(process.env.COOKIE_SECRET));
@@ -71,14 +87,14 @@ app.use("/auth", authRoutes);
 app.use("/car", carRoutes);
 app.use(googleRoutes);
 app.use(aiRoutes);
-app.get("/protect-server", validateWhitelist({body:[],query:[],params:[]}), (request, response) =>
+app.get("/protect-server", validateWhitelist({ body: [], query: [], params: [] }), (request, response) =>
   response.status(200).json({ success: true })
 );
-app.get("/cron", validateWhitelist({body:[],query:[],params:[]}), (request, response) =>
+app.get("/cron", validateWhitelist({ body: [], query: [], params: [] }), (request, response) =>
   response.status(200).json({ message: "Cron job is working", success: true })
 );
-app.get("/csrf-token", validateWhitelist({body:[],query:[],params:[]}), csrf);
-if(process.env.NODE_ENV === 'production') job.start();
+app.get("/csrf-token", validateWhitelist({ body: [], query: [], params: [] }), csrf);
+if (process.env.NODE_ENV === "production") job.start();
 connectToDB()
   .then(() => {
     app.listen(process.env.PORT, () => {
@@ -96,9 +112,7 @@ connectToDB()
             : "Ready for production"
         )
       );
-      console.log(
-        chalk.yellow("► Security layers activated")
-      );
+      console.log(chalk.yellow("► Security layers activated"));
     });
   })
   .catch((error) => console.log(chalk.red(`${error}`)));

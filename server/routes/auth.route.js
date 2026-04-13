@@ -1,61 +1,70 @@
 import express from "express";
 import {
-  checkAuth,
-  checkCode,
-  checkPage,
-  checkResetPasswordPage,
   login,
-  logout,
   register,
+  logout,
+  updateUser,
+  checkAuth,
   resendCode,
+  checkCode,
   resetPassword,
   resetPasswordConfirm,
-  updateProfilePhoto,
-  updateUser,
+  checkPage,
+  checkResetPasswordPage,
+  updateProfilePhoto
 } from "../controllers/auth.controller.js";
-import { blockUser, verifyUser } from "../middleware/user.guard.js";
+import { verifyUser, blockUser } from "../middleware/user.guard.js";
 import { photoUpload } from "../utils/multer.utils.js";
 import { validateWhitelist } from "../middleware/server.guard.js";
 const router = express.Router();
 router.put(
   "/update-user",
   validateWhitelist({
-    body: ["name", "username", "bio"],
-    query: [],
-    params: []
+    body: {
+      name: "string",
+      username: "string",
+      bio: "string"
+    }
   }),
   verifyUser,
   updateUser
 );
 router.put(
   "/update-profile",
-  photoUpload.single("image"), 
+  photoUpload.single("image"),
   validateWhitelist({
-    body: [],
-    query: [],
-    params: []
+    body: {}
   }),
   verifyUser,
   updateProfilePhoto
 );
 router.get(
   "/check",
-  validateWhitelist({ body: [], query: [], params: [] }),
+  validateWhitelist({
+    body: {},
+    query: {},
+    params: {}
+  }),
   verifyUser,
   checkAuth
 );
 router.post(
   "/logout",
-  validateWhitelist({ body: [], query: [], params: [] }),
+  validateWhitelist({
+    body: {},
+    query: {},
+    params: {}
+  }),
   verifyUser,
   logout
 );
 router.post(
   "/login",
   validateWhitelist({
-    body: ["email", "password"],
-    query: [],
-    params: []
+    body: {
+      email: "string",
+      password: "string"
+    }
   }),
   blockUser,
   login
@@ -63,9 +72,13 @@ router.post(
 router.post(
   "/register",
   validateWhitelist({
-    body: ["name", "email", "password", "username", "confirm_password"],
-    query: [],
-    params: []
+    body: {
+      name: "string",
+      email: "string",
+      password: "string",
+      username: "string",
+      confirm_password: "string"
+    }
   }),
   blockUser,
   register
@@ -73,9 +86,9 @@ router.post(
 router.get(
   "/check-page/:verificationToken",
   validateWhitelist({
-    body: [],
-    query: [],
-    params: ["verificationToken"]
+    params: {
+      verificationToken: "string"
+    }
   }),
   blockUser,
   checkPage
@@ -83,9 +96,9 @@ router.get(
 router.post(
   "/resend-code",
   validateWhitelist({
-    body: ["verificationToken"],
-    query: [],
-    params: []
+    body: {
+      verificationToken: "string"
+    }
   }),
   blockUser,
   resendCode
@@ -93,9 +106,10 @@ router.post(
 router.post(
   "/check-code",
   validateWhitelist({
-    body: ["verificationCode", "verificationToken"],
-    query: [],
-    params: []
+    body: {
+      verificationCode: "string",
+      verificationToken: "string"
+    }
   }),
   blockUser,
   checkCode
@@ -103,9 +117,9 @@ router.post(
 router.post(
   "/reset-password",
   validateWhitelist({
-    body: ["email"],
-    query: [],
-    params: []
+    body: {
+      email: "string"
+    }
   }),
   blockUser,
   resetPassword
@@ -113,9 +127,12 @@ router.post(
 router.post(
   "/confirm-password/:token",
   validateWhitelist({
-    body: ["password"],
-    query: [],
-    params: ["token"]
+    body: {
+      password: "string"
+    },
+    params: {
+      token: "string"
+    }
   }),
   blockUser,
   resetPasswordConfirm
@@ -123,9 +140,9 @@ router.post(
 router.get(
   "/check-reset-password-page/:token",
   validateWhitelist({
-    body: [],
-    query: [],
-    params: ["token"]
+    params: {
+      token: "string"
+    }
   }),
   blockUser,
   checkResetPasswordPage

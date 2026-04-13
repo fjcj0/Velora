@@ -15,9 +15,18 @@ router.post(
   "/add-car",
   photoUpload.single("image"),
   validateWhitelist({
-    body: ["brand","model","year","price","category","fuel","capacity","location","description","transmission"],
-    query: [],
-    params: []
+    body: {
+      brand: "string",
+      model: "string",
+      year: "number",
+      price: "number",
+      category: "string",
+      fuel: "string",
+      capacity: "number",
+      location: "string",
+      description: "string",
+      transmission: "string"
+    }
   }),
   verifyAdmin,
   createCar
@@ -25,9 +34,9 @@ router.post(
 router.delete(
   "/delete-car/:id",
   validateWhitelist({
-    body: [],
-    query: [],
-    params: ["id"]
+    params: {
+      id: "string"
+    }
   }),
   verifyAdmin,
   deleteCar
@@ -36,9 +45,21 @@ router.put(
   "/update-car/:id",
   photoUpload.single("image"),
   validateWhitelist({
-    body: ["brand","model","year","price","category","fuel","capacity","location","description","transmission"],
-    query: [],
-    params: ["id"]
+    body: {
+      brand: "string",
+      model: "string",
+      year: "number",
+      price: "number",
+      category: "string",
+      fuel: "string",
+      capacity: "number",
+      location: "string",
+      description: "string",
+      transmission: "string"
+    },
+    params: {
+      id: "string"
+    }
   }),
   verifyAdmin,
   updateCar
@@ -46,9 +67,9 @@ router.put(
 router.get(
   "/get-car/:id",
   validateWhitelist({
-    body: [],
-    query: [],
-    params: ["id"]
+    params: {
+      id: "string"
+    }
   }),
   verifyUser,
   getSingleCar
@@ -56,9 +77,9 @@ router.get(
 router.get(
   "/get-cars",
   validateWhitelist({
-    body: [],
-    query: [],
-    params: []
+    body: {},
+    query: {},
+    params: {}
   }),
   verifyUser,
   getAllCar

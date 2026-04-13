@@ -1,41 +1,44 @@
 import xss from "xss";
 import rateLimit, { ipKeyGenerator } from "express-rate-limit";
 import slowDown from "express-slow-down";
-export const validateWhitelist = (schema = { body: [], query: [], params: [] }) => {
+export const validateWhitelist = (
+  schema = {
+    body: {},
+    query: {},
+    params: {}
+  }
+) => {
   return (request, response, next) => {
-    const sanitizeDeep = (value) => {
-      if (typeof value === "string") {
-        return xss(value);
+    const validateSource = (source, rules, sourceName) => {
+      const errors = [];
+      if (!source || !rules) return errors;
+      for (const key of Object.keys(source)) {
+        if (!(key in rules)) {
+          errors.push(`${sourceName}.${key} is not allowed`);
+          continue;
+        }
+        const expectedType = rules[key];
+        const value = source[key];
+        const actualType = Array.isArray(value)
+          ? "array"
+          : typeof value;
+        if (expectedType && actualType !== expectedType) {
+          errors.push(
+            `${sourceName}.${key} must be ${expectedType}, got ${actualType}`
+          );
+        }
       }
-      if (Array.isArray(value)) {
-        return value.map(sanitizeDeep);
-      }
-      if (value && typeof value === "object") {
-        const cleaned = {};
-        Object.keys(value).forEach((key) => {
-          cleaned[key] = sanitizeDeep(value[key]);
-        });
-        return cleaned;
-      }
-      return value;
+      return errors;
     };
-    const body = sanitizeDeep(request.body);
-    const query = sanitizeDeep(request.query);
-    const params = sanitizeDeep(request.params);
-    const collectInvalid = (source, allowed) => {
-      return Object.keys(source || {}).filter(
-        (key) => !allowed.includes(key)
-      );
-    };
-    const invalidFields = [
-      ...collectInvalid(body, schema.body || []),
-      ...collectInvalid(query, schema.query || []),
-      ...collectInvalid(params, schema.params || [])
+    const errors = [
+      ...validateSource(request.body, schema.body, "body"),
+      ...validateSource(request.query, schema.query, "query"),
+      ...validateSource(request.params, schema.params, "params")
     ];
-    if (invalidFields.length > 0) {
+    if (errors.length > 0) {
       return response.status(400).json({
         success: false,
-        error: `Invalid fields: ${invalidFields.join(", ")}`
+        errors
       });
     }
     next();

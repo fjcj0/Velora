@@ -17,11 +17,25 @@ export const validateWhitelist = (
           errors.push(`${sourceName}.${key} is not allowed`);
           continue;
         }
-        const expectedType = rules[key];
-        const value = source[key];
-        const actualType = Array.isArray(value)
+        const expectedType = xss(rules[key]);
+        const value = xss(source[key]);
+        let actualValue = xss(value);
+        if (expectedType === "number") {
+          actualValue = Number(value);
+          if (value !== "" && isNaN(actualValue)) {
+            errors.push(
+              `${sourceName}.${key} must be ${expectedType}, got invalid number`
+            );
+            continue;
+          }
+        }
+        const checkedValue =
+          typeof actualValue === "string"
+            ? actualValue
+            : actualValue;
+        const actualType = Array.isArray(xss(checkedValue))
           ? "array"
-          : typeof value;
+          : typeof checkedValue;
         if (expectedType && actualType !== expectedType) {
           errors.push(
             `${sourceName}.${key} must be ${expectedType}, got ${actualType}`
@@ -30,15 +44,14 @@ export const validateWhitelist = (
       }
       return errors;
     };
-    const errors = [
-      ...validateSource(request.body, schema.body, "body"),
-      ...validateSource(request.query, schema.query, "query"),
-      ...validateSource(request.params, schema.params, "params")
-    ];
-    if (errors.length > 0) {
+    const bodyErrors = validateSource(request.body, schema.body, "body");
+    const queryErrors = validateSource(request.query, schema.query, "query");
+    const paramsErrors = validateSource(request.params, schema.params, "params");
+    const allErrors = [...bodyErrors, ...queryErrors, ...paramsErrors];
+    if (allErrors.length > 0) {
       return response.status(400).json({
         success: false,
-        errors
+        errors: allErrors
       });
     }
     next();

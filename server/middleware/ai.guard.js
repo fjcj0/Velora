@@ -26,3 +26,19 @@ export const checkAiAccess = async (request, response, next) => {
         });
     }
 };
+export const checkAiAccessAdmin = async (request, response, next) => {
+    try {
+        if (request.ip !== '::1') {
+            return response.status(403).json({
+                success: false,
+                error: 'Forbidden'
+            });   
+        }
+        next();
+    } catch (error) {
+        return response.status(500).json({
+            success: false,
+            error: `Internal Server Error: ${error instanceof Error ? error.message : error}`
+        });
+    }
+}

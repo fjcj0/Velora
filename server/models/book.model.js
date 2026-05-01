@@ -10,6 +10,10 @@ const bookingSchema = new mongoose.Schema({
     ref: "User",
     required: true,
   },
+  startedAt: {
+    type: Date,
+    default: Date.now(),
+  },
   endAt: {
     type: Date,
     required: true,

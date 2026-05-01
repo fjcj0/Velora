@@ -1,33 +1,21 @@
-import axios from "axios";
+import Groq from "groq-sdk";
 export async function completion_ai(systemPrompt, message) {
   try {
-    const response = await axios.post(
-      process.env.AI_URL,
-      {
-        model: "qwen2.5:14b",
-        messages: [
-          {
-            role: "system",
-            content: systemPrompt,
-          },
-          {
-            role: "user",
-            content: message,
-          },
-        ],
-        stream: false,
-        options: {
-          temperature: 0.2,
-          num_predict: 250,
-          top_k: 30,
+    const groq = new Groq({ apiKey: process.env.GROQ_API_KEY });
+    const response = await groq.chat.completions.create({
+      messages: [
+        {
+          role: "system",
+          content: systemPrompt,
         },
-      },
-      {
-        headers: { "Content-Type": "application/json" },
-        timeout: 60000,
-      }
-    );
-    return response.data.message.content;
+        {
+          role: "user",
+          content: message,
+        },
+      ],
+      model: "openai/gpt-oss-20b",
+    });
+    return response.choices[0].message.content;
   } catch (error) {
     throw new Error(
       `${error instanceof Error ? error.message : error}`

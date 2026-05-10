@@ -1,22 +1,25 @@
 import { CarIcon, CalendarIcon, SparklesIcon, UserIcon } from "lucide-react";
 export const dashboardLinks = [
   {
+    title: "Cars",
     name: "Cars",
     icon: CarIcon,
     path: "/cars",
   },
   {
+    title: "Bookings",
     name: "Bookings",
     icon: CalendarIcon,
     path: "/bookings",
   },
   {
+    title: "Ai",
     name: "AI",
     icon: SparklesIcon,
     path: "/ai",
   },
   {
-    name: "Profile",
+    title: "Profile",
     icon: UserIcon,
     path: "/profile",
   },

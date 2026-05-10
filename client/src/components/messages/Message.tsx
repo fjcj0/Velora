@@ -9,7 +9,6 @@ import {
 } from "lucide-react";
 import React from "react";
 import { Link } from "react-router-dom";
-
 const Message: React.FC<MessageType> = ({
   type,
   message,
@@ -33,13 +32,13 @@ const Message: React.FC<MessageType> = ({
       <div className="flex flex-col gap-5 max-w-[70%]">
         <div
           className={`rounded-lg p-3 text-sm ${
-            isAI ? "text-white" : "bg-blue-500 text-white"
+            isAI ? "text-white" : "bg-[#6E62E4] text-white"
           }`}
         >
           <div
             className={`flex w-full max-md:items-start items-center justify-start gap-x-1.5 ${
-              isAI ? "text-white/70" : ""
-            } hover:text-white duration-300 transition-all ease`}
+              isAI ? "text-black/70" : ""
+            } duration-300 transition-all ease`}
           >
             {isAI && (
               <MessageCircle size={20} className="shrink-0 mt-0.5" />

@@ -35,7 +35,7 @@ const AiPage = () => {
         ...prev,
         {
           type: "ai",
-          message: data?.message || "No response",
+          message: data?.message || data.result || "No response",
           markdowns: data?.markdowns || [],
         },
       ]);
@@ -61,7 +61,7 @@ const AiPage = () => {
           messages.length === 0
           &&
           <div className="w-full h-full flex items-center justify-center">
-              <h1 className="text-white text-[40px] md:text-[55px] font-poppins font-bold">Hey how can i help you?</h1>
+              <h1 className="text-black text-[40px] md:text-[55px] font-poppins font-bold">Hey how can i help you?</h1>
           </div>
         }
         {messages.map((msg, idx) => (
@@ -90,18 +90,18 @@ const AiPage = () => {
             onKeyDown={handleKeyDown}
             rows={1}
             placeholder="ask anything"
-            className="w-full pl-5 pr-14 py-4 bg-[#212121]/80 backdrop-blur-xs rounded-4xl outline-none border-none text-white font-[200] resize-none overflow-y-auto max-h-[200px]"
+            className="w-full pl-5 pr-14 py-4 bg-white backdrop-blur-xs rounded-4xl outline-none border-1 border-gray-300 text-black font-[200] resize-none overflow-y-auto max-h-[200px]"
           />
           <button
             onClick={handleSend}
             disabled={isLoading}
             className={`right-3 bottom-6.5 absolute flex rounded-full items-center justify-center w-10 h-10 transition ${
               isLoading
-                ? "bg-white/70"
-                : "bg-white hover:bg-white/70"
+                ? "bg-black/70"
+                : "bg-black hover:bg-black/70"
             }`}
           >
-            <ArrowUp size={20} />
+            <ArrowUp size={20} color="white"/>
           </button>
         </div>
       </div>

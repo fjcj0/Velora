@@ -1,6 +1,6 @@
 const BookingsPage = () => {
     return (
-        <div>
+        <div className="p-3">
             <h1 className="text-3xl text-white font-bold font-poppins">Booking Page</h1>
         </div>
     );

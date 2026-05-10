@@ -9,7 +9,6 @@ import ResetPasswordPage from "./pages/auth-pages/ResetPasswordPage";
 import { useEffect } from "react";
 import { protectServer } from "./utils/protection.utils";
 import DashboardLayout from "./layouts/DashboardLayout";
-import DashboardPage from "./pages/user-dashbaord-pages/DashboardPage";
 import CarsPage from "./pages/user-dashbaord-pages/CarsPage";
 import CarPage from "./pages/user-dashbaord-pages/CarPage";
 import AiPage from "./pages/user-dashbaord-pages/AiPage";
@@ -40,7 +39,7 @@ function App() {
         {/*Authntication Pages*/}
         {/*Dashboard Pages*/}
         <Route path="/" element={<DashboardLayout />}>
-          <Route index element={<DashboardPage />} />
+           <Route index element={<PageNotFound />} />
           <Route path="/cars" element={<CarsPage />} />
           <Route path="/car/:id" element={<CarPage />} />
           <Route path="/bookings" element={<BookingsPage/>} />

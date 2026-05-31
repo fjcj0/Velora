@@ -44,7 +44,9 @@ export const createCar = async (request, response) => {
     }
     const uploadedImage = await uploadPicture(request.file.buffer);
     if (!uploadedImage)
-      return response.status(500).json({ success: false, error: "Failed to upload image" });
+      return response
+        .status(500)
+        .json({ success: false, error: "Failed to upload image" });
     const newCar = new Car({
       image: uploadedImage.url,
       public_id: uploadedImage.public_id,
@@ -65,11 +67,13 @@ export const createCar = async (request, response) => {
     cars = cars ? cars : [];
     cars.push(result);
     await setRedis("cars", cars);
-    return response.status(201).json({ success: true, data: result });
+    return response.status(201).json({ success: true, car: result });
   } catch (error) {
     return response.status(500).json({
       success: false,
-      error: `Internal Server Error: ${error instanceof Error ? error.message : error}`
+      error: `Internal Server Error: ${
+        error instanceof Error ? error.message : error
+      }`
     });
   }
 };
@@ -77,38 +81,63 @@ export const deleteCar = async (request, response) => {
   try {
     const id = xss(request.params.id);
     if (!request.user.isAdmin)
-      return response.status(401).json({ success: false, error: "Unauthorized user" });
+      return response
+        .status(401)
+        .json({ success: false, error: "Unauthorized user" });
     const deletedCar = await Car.findByIdAndDelete(id);
     if (!deletedCar)
       return response.status(404).json({ message: "Car Not Found" });
-    if (deletedCar.public_id)
-      await deletePicture(deletedCar.public_id);
+    if (deletedCar.public_id) await deletePicture(deletedCar.public_id);
     await deleteRedis(id);
     let cars = await getRedis("cars");
     if (cars) {
-      cars = cars.filter(car => car._id.toString() !== id);
+      cars = cars.filter((car) => car._id.toString() !== id);
       await setRedis("cars", cars);
     }
-    return response.status(200).json({ success: true, data: deletedCar });
+    return response.status(200).json({ success: true, deletedCar });
   } catch (error) {
     return response.status(500).json({
       success: false,
-      error: `Internal Server Error: ${error instanceof Error ? error.message : error}`
+      error: `Internal Server Error: ${
+        error instanceof Error ? error.message : error
+      }`
     });
   }
 };
 export const getAllCar = async (request, response) => {
   try {
-    let cars = await getRedis("cars");
-    if (!cars) {
-      cars = await Car.find();
-      await setRedis("cars", cars);
+    let page = parseInt(request.query.page) || 1;
+    let limit = parseInt(request.query.limit) || 10;
+    let search = request.query.search || "";
+    const skip = (page - 1) * limit;
+    let query = {};
+    if (search.trim()) {
+      query = {
+        $or: [
+          { brand: { $regex: search, $options: "i" } },
+          { model: { $regex: search, $options: "i" } }
+        ]
+      };
     }
-    return response.status(200).json({ success: true, data: cars });
+    const cars = await Car.find(query)
+      .skip(skip)
+      .limit(limit)
+      .sort({ createdAt: -1 });
+    const totalCars = await Car.countDocuments(query);
+    const hasMore = page * limit < totalCars;
+    return response.status(200).json({
+      success: true,
+      cars,
+      page,
+      hasMore,
+      search: search || null
+    });
   } catch (error) {
     return response.status(500).json({
       success: false,
-      error: `Internal Server Error: ${error instanceof Error ? error.message : error}`
+      error: `Internal Server Error: ${
+        error instanceof Error ? error.message : error
+      }`
     });
   }
 };
@@ -116,19 +145,22 @@ export const getSingleCar = async (request, response) => {
   try {
     const id = xss(request.params.id);
     if (!mongoose.Types.ObjectId.isValid(id))
-      return response.status(400).json({ message: "Invalid Car ID" });
+      return response.status(400).json({ error: "Invalid Car ID" });
     let car = await getRedis(id);
     if (!car) {
       car = await Car.findById(id);
       if (!car)
-        return response.status(404).json({ message: "Car Not Found" });
+        return response.status(404).json({ error: "Car Not Found" });
+
       await setRedis(id, car);
     }
-    return response.status(200).json({ success: true, data: car });
+    return response.status(200).json({ success: true,  car });
   } catch (error) {
     return response.status(500).json({
       success: false,
-      error: `Internal Server Error: ${error instanceof Error ? error.message : error}`
+      error: `Internal Server Error: ${
+        error instanceof Error ? error.message : error
+      }`
     });
   }
 };
@@ -136,7 +168,9 @@ export const updateCar = async (request, response) => {
   try {
     const id = xss(request.params.id);
     if (!request.user.isAdmin)
-      return response.status(401).json({ success: false, error: "Unauthorized user" });
+      return response
+        .status(401)
+        .json({ success: false, error: "Unauthorized user" });
     if (!mongoose.Types.ObjectId.isValid(id))
       return response.status(400).json({ message: "Invalid Car ID" });
     const car = await Car.findById(id);
@@ -147,7 +181,9 @@ export const updateCar = async (request, response) => {
       if (car.public_id) await deletePicture(car.public_id);
       uploadedImage = await uploadPicture(request.file.buffer);
       if (!uploadedImage)
-        return response.status(500).json({ message: "Failed to upload image" });
+        return response
+          .status(500)
+          .json({ message: "Failed to upload image" });
     }
     const updateData = {
       ...(uploadedImage && {
@@ -160,25 +196,37 @@ export const updateCar = async (request, response) => {
       ...(request.body.price && { price: xss(request.body.price) }),
       ...(request.body.category && { category: xss(request.body.category) }),
       ...(request.body.fuel && { fuel: xss(request.body.fuel) }),
-      ...(request.body.capacity && { capacity: xss(request.body.capacity) }),
-      ...(request.body.location && { location: xss(request.body.location) }),
-      ...(request.body.description && { description: xss(request.body.description) }),
-      ...(request.body.transmission && { transmission: xss(request.body.transmission) }),
+      ...(request.body.capacity && {
+        capacity: xss(request.body.capacity)
+      }),
+      ...(request.body.location && {
+        location: xss(request.body.location)
+      }),
+      ...(request.body.description && {
+        description: xss(request.body.description)
+      }),
+      ...(request.body.transmission && {
+        transmission: xss(request.body.transmission)
+      })
     };
-    const updatedCar = await Car.findByIdAndUpdate(id, updateData, { new: true });
+    const updatedCar = await Car.findByIdAndUpdate(id, updateData, {
+      new: true
+    });
     await setRedis(updatedCar._id.toString(), updatedCar);
     let cars = await getRedis("cars");
     if (cars) {
-      cars = cars.map(car =>
+      cars = cars.map((car) =>
         car._id.toString() === id ? updatedCar : car
       );
       await setRedis("cars", cars);
     }
-    return response.status(200).json({ success: true, data: updatedCar });
+    return response.status(200).json({ success: true, car: updatedCar });
   } catch (error) {
     return response.status(500).json({
       success: false,
-      error: `Internal Server Error: ${error instanceof Error ? error.message : error}`
+      error: `Internal Server Error: ${
+        error instanceof Error ? error.message : error
+      }`
     });
   }
 };

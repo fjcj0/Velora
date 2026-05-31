@@ -22,7 +22,6 @@ const Slider = () => {
       </button>
       <div className="w-full flex flex-col ">
         <div className="pl-3">
-
         <img src="/logo.jpg" alt="" className="w-14 rounded-full mb-10" />
           <p className="text-xs mb-5 text-gray-400 font-[300]">OVERVIEW</p>
                 </div>

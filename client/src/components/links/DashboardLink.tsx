@@ -14,8 +14,8 @@ const DashboardLink = ({
   return (
 <Link
   to={path}
-  className={`relative font-poppins px-2 py-3 w-full flex items-start gap-x-1
-  hover:bg-[#6E62E4]/30 text-black duration-300 transition-all ease
+  className={`relative font-poppins px-4 py-3 w-full flex items-start gap-x-1
+  ${!isActive && 'hover:bg-[#6E62E4]/30'}  text-black duration-300 transition-all ease
   ${isActive ? 'bg-[#6E62E4]/10' : ''}`}
 >
   {isActive && (

@@ -248,7 +248,8 @@ export const checkCode = async (request, response) => {
     await sendWelcomeEmail(user.email, user.name);
     return response.status(200).json({
       success: true,
-      message: "email verified successfully"
+      message: "email verified successfully",
+      user
     });
   } catch (error) {
     return response.status(500).json({

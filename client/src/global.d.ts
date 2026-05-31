@@ -17,17 +17,20 @@ declare interface UserStore {
     password: string,
     confirmation_password: string,
     bio: string,
-  ) => Promise<void>;
-  checkPage: (verificationToken: string) => Promise<void>;
+  ) => Promise<void | string | boolean>;
+  checkPage: (verificationToken: string) => Promise<void | boolean>;
   checkCode: (verificationToken: string, code: string) => Promise<void>;
   resendCode: (verificationToken: string) => Promise<void>;
-  login: (email: string, password: string) => Promise<void>;
+  login: (email: string, password: string) => Promise<void | string | boolean>;
   logout: () => Promise<void>;
   updateUser: (name: string, username: string, bio: string) => Promise<void>;
   updateProfilePhoto: (file: File) => Promise<void>;
-  checkResetPasswordPage: (token: string) => Promise<void>;
-  resetPassword: (email: string) => Promise<void>;
-  resetPasswordConfirm: (token: string, password: string) => Promise<void>;
+  checkResetPasswordPage: (token: string) => Promise<void | boolean>;
+  resetPassword: (email: string) => Promise<void | boolean>;
+  resetPasswordConfirm: (
+    token: string,
+    password: string,
+  ) => Promise<void | boolean>;
 }
 /*FINISH DECLARE USERS STORE*/
 type Car = {

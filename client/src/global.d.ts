@@ -16,9 +16,8 @@ declare interface UserStore {
     username: string,
     password: string,
     confirmation_password: string,
-    bio: string,
   ) => Promise<void | string | boolean>;
-  checkPage: (verificationToken: string) => Promise<void | boolean>;
+  checkPage: (verificationToken: string) => Promise<void | any>;
   checkCode: (verificationToken: string, code: string) => Promise<void>;
   resendCode: (verificationToken: string) => Promise<void>;
   login: (email: string, password: string) => Promise<void | string | boolean>;

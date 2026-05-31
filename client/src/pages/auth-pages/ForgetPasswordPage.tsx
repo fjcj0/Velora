@@ -2,7 +2,10 @@ import { useState } from "react";
 import AuthButton from "../../components/buttons/AuthButton";
 import AuthInput from "../../components/inputs/AuthInput";
 import { emailRegex } from "../../regax.global";
+import useUserStore from "../../store/auth.store";
 const ForgetPasswordPage = () => {
+  const { resetPassword } = useUserStore();
+  const [isLoading, setIsLoading] = useState<boolean>(false);
   const [email, setEmail] = useState<string>('');
   const [errorEmail, setErrorEmail] = useState<string>('');
   const validateEmail = (value: string) => {
@@ -19,6 +22,16 @@ const ForgetPasswordPage = () => {
   };
   const onSendEmail = async () => {
     if (!email) return;
+    setIsLoading(true);
+    try {
+      await resetPassword(email);
+    } catch (error) {
+      console.log(error);
+    } finally { 
+      setIsLoading(false);
+      setEmail('');
+      setErrorEmail('');
+    }
   };
   return (
     <div className="w-screen min-h-screen bg-[#F3F4F5] flex items-center justify-center">
@@ -42,7 +55,7 @@ const ForgetPasswordPage = () => {
         />
         <AuthButton
           title="Send Link"
-          isLoading={false}
+          isLoading={isLoading}
           onClick={onSendEmail}
         />
       </div>

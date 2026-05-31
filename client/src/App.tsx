@@ -36,7 +36,7 @@ function App() {
       return <SplashScreen />;
     }
     if (user && user.isVerified) {
-      return <Navigate to="/car" replace />;
+      return <Navigate to="/cars" replace />;
     }
     return <>{children}</>;
   };

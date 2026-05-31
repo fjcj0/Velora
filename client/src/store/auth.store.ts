@@ -25,7 +25,6 @@ const useUserStore = create<UserStore>((set) => ({
     username,
     password,
     confirmation_password,
-    bio,
   ) => {
     try {
       const response = await api.post(`${endpoint}/register`, {
@@ -34,7 +33,6 @@ const useUserStore = create<UserStore>((set) => ({
         username,
         password,
         confirm_password: confirmation_password,
-        bio,
       });
       if (response.status === 200 || response.status === 201) {
         return response.data.verificationToken;
@@ -54,8 +52,8 @@ const useUserStore = create<UserStore>((set) => ({
       const response = await api.get(
         `${endpoint}/check-page/${verificationToken}`,
       );
-      return response.status === 200;
-    } catch {
+      return response.data;
+    } catch (error) {
       return false;
     }
   },

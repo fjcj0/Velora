@@ -27,3 +27,13 @@ export const setRedis = async (key, value, ttl = 60) => {
     throw error;
   }
 };
+export const clearRedisByPattern = async (pattern) => {
+  try {
+    const keys = await client.keys(pattern);
+    if (keys.length > 0) {
+      await client.del(keys);
+    }
+  } catch (error) {
+    throw error;
+  }
+};

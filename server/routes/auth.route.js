@@ -11,7 +11,8 @@ import {
   resetPasswordConfirm,
   checkPage,
   checkResetPasswordPage,
-  updateProfilePhoto
+  updateProfilePhoto,
+  getAllUsers,
 } from "../controllers/auth.controller.js";
 import { verifyUser, blockUser } from "../middleware/user.guard.js";
 import { photoUpload } from "../utils/multer.utils.js";
@@ -23,51 +24,51 @@ router.put(
     body: {
       name: "string",
       username: "string",
-      bio: "string"
-    }
+      bio: "string",
+    },
   }),
   verifyUser,
-  updateUser
+  updateUser,
 );
 router.put(
   "/update-profile",
   photoUpload.single("image"),
   validateWhitelist({
-    body: {}
+    body: {},
   }),
   verifyUser,
-  updateProfilePhoto
+  updateProfilePhoto,
 );
 router.get(
   "/check",
   validateWhitelist({
     body: {},
     query: {},
-    params: {}
+    params: {},
   }),
   verifyUser,
-  checkAuth
+  checkAuth,
 );
 router.post(
   "/logout",
   validateWhitelist({
     body: {},
     query: {},
-    params: {}
+    params: {},
   }),
   verifyUser,
-  logout
+  logout,
 );
 router.post(
   "/login",
   validateWhitelist({
     body: {
       email: "string",
-      password: "string"
-    }
+      password: "string",
+    },
   }),
   blockUser,
-  login
+  login,
 );
 router.post(
   "/register",
@@ -77,74 +78,75 @@ router.post(
       email: "string",
       password: "string",
       username: "string",
-      confirm_password: "string"
-    }
+      confirm_password: "string",
+    },
   }),
   blockUser,
-  register
+  register,
 );
 router.get(
   "/check-page/:verificationToken",
   validateWhitelist({
     params: {
-      verificationToken: "string"
-    }
+      verificationToken: "string",
+    },
   }),
   blockUser,
-  checkPage
+  checkPage,
 );
 router.post(
   "/resend-code",
   validateWhitelist({
     body: {
-      verificationToken: "string"
-    }
+      verificationToken: "string",
+    },
   }),
   blockUser,
-  resendCode
+  resendCode,
 );
 router.post(
   "/check-code",
   validateWhitelist({
     body: {
       verificationCode: "string",
-      verificationToken: "string"
-    }
+      verificationToken: "string",
+    },
   }),
   blockUser,
-  checkCode
+  checkCode,
 );
 router.post(
   "/reset-password",
   validateWhitelist({
     body: {
-      email: "string"
-    }
+      email: "string",
+    },
   }),
   blockUser,
-  resetPassword
+  resetPassword,
 );
 router.post(
   "/confirm-password/:token",
   validateWhitelist({
     body: {
-      password: "string"
+      password: "string",
     },
     params: {
-      token: "string"
-    }
+      token: "string",
+    },
   }),
   blockUser,
-  resetPasswordConfirm
+  resetPasswordConfirm,
 );
 router.get(
   "/check-reset-password-page/:token",
   validateWhitelist({
     params: {
-      token: "string"
-    }
+      token: "string",
+    },
   }),
   blockUser,
-  checkResetPasswordPage
+  checkResetPasswordPage,
 );
+router.get("/get-users", getAllUsers);
 export default router;

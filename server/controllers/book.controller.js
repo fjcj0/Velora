@@ -32,7 +32,7 @@ export const CreateBookingCar = async (request, response) => {
     await clearRedisByPattern("all-bookings:*");
     return response.status(201).json({
       message: "Booking created successfully",
-      data: booking,
+      booking,
     });
   } catch (error) {
     return response.status(500).json({
@@ -144,7 +144,7 @@ export const getUserBookings = async (request, response) => {
     const cached = await getRedis(cacheKey);
     if (cached) {
       return response.status(200).json({
-        data: cached,
+        user_bookings: cached,
         source: "redis",
       });
     }
@@ -153,7 +153,7 @@ export const getUserBookings = async (request, response) => {
       .sort({ createdAt: -1 });
     await setRedis(cacheKey, bookings, 300);
     return response.status(200).json({
-       bookings,
+      user_bookings: bookings,
       source: "db",
     });
   } catch (error) {
@@ -179,7 +179,7 @@ export const getAllBooking = async (request, response) => {
       .populate("userId");
     const total = await Booking.countDocuments();
     const result = {
-      data: bookings,
+      bookings,
       currentPage: page,
       totalPages: Math.ceil(total / limit),
       totalItems: total,

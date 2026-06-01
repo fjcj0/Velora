@@ -1,4 +1,5 @@
 import { dashboardLinks } from "../../constants/data";
+import useUserStore from "../../store/auth.store";
 import useSlideStore from "../../store/dashboard.store";
 import DashboardLink from "../links/DashboardLink";
 import { LogOut } from "lucide-react";
@@ -7,6 +8,7 @@ import { useLocation } from "react-router-dom";
 const Slider = () => {
   const location = useLocation();
   const { toggleSlide, isSlideOpen } = useSlideStore();
+  const { logout } = useUserStore();
   return (
     <div
       className={`w-[13rem] flex flex-col font-poppins items-center pt-5 pb-7 justify-between h-full bg-[#FFFFFF] transition-transform duration-300 ease overflow-y-auto
@@ -42,9 +44,9 @@ const Slider = () => {
         <div className=" flex items-start justify-start w-full">
           <button
             type="button"
-            className="cursor-pointer w-full hover:bg-[#6E62E4]/30 text-black p-3 duration-300 transition-all ease flex items-center justify-start text-sm gap-x-1"
-          >
-            <LogOut size={18} />
+            onClick={logout}
+            className="cursor-pointer w-full hover:bg-[#6E62E4]/30 text-black p-3 duration-300 transition-all ease flex items-center justify-start text-sm gap-x-1">
+            <LogOut size={18}/>
             Logout
           </button>
         </div>

@@ -3,6 +3,7 @@ import api from "../../utils/api.utils";
 import { Spinner } from "../../components/ui/spinner";
 import { motion } from "framer-motion";
 import { Fuel, Users, MapPin, Settings } from "lucide-react";
+import { useNavigate } from "react-router-dom";
 type Car = {
   _id: string;
   image: string;
@@ -20,6 +21,7 @@ type Car = {
   quantity: number;
 };
 const CarsPage = () => {
+  const navigate = useNavigate();
   const endpoint = "/car";
   const [cars, setCars] = useState<Car[]>([]);
   const [page, setPage] = useState<number>(1);
@@ -120,7 +122,7 @@ const CarsPage = () => {
                   type: "spring",
                   stiffness: 100,
                 }}
-                className="border border-gray-300 rounded-2xl p-4 bg-white shadow-sm hover:shadow-lg transition-all duration-300"
+                className="border border-gray-300 rounded-2xl p-4 bg-white"
               >
                 <div className="relative">
                   <div className="absolute top-3 right-3 bg-green-100 text-green-700 px-4 py-1 rounded-full text-xs">
@@ -181,7 +183,9 @@ const CarsPage = () => {
                       ${car.price}
                     </span>
                   </div>
-                  <button className="w-full mt-4 h-10 rounded-lg border border-green-600 font-semibold hover:bg-green-600 hover:text-white transition-all duration-300">
+                  <button onClick={() => { 
+                    navigate(`/car/${car._id}`);
+                  }} className="w-full mt-4 h-10 rounded-lg border border-green-600 font-semibold hover:bg-green-600 hover:text-white transition-all duration-300 cursor-pointer">
                     Rent Now
                   </button>
                 </div>

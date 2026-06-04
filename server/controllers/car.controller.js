@@ -1,7 +1,7 @@
 import { Car } from "../models/car.model.js";
 import mongoose from "mongoose";
 import { uploadPicture, deletePicture } from "../utils/cloudinary.utils.js";
-import { deleteRedis, getRedis, setRedis } from "../utils/redis.utils.js";
+import { deleteRedis, getRedis, setRedis,clearRedisByPattern } from "../utils/redis.utils.js";
 import xss from "xss";
 export const createCar = async (request, response) => {
   try {
@@ -67,7 +67,7 @@ export const createCar = async (request, response) => {
     cars = cars ? cars : [];
     cars.push(result);
     await setRedis("cars", cars);
-    await clearCarsCache();
+    await clearRedisByPattern("cars*");
     return response.status(201).json({ success: true, car: result });
   } catch (error) {
     return response.status(500).json({
@@ -95,7 +95,7 @@ export const deleteCar = async (request, response) => {
       cars = cars.filter((car) => car._id.toString() !== id);
       await setRedis("cars", cars);
     }
-    await clearCarsCache();
+    await clearRedisByPattern("cars*");
     return response.status(200).json({ success: true, deletedCar });
   } catch (error) {
     return response.status(500).json({
@@ -228,7 +228,7 @@ export const updateCar = async (request, response) => {
       );
       await setRedis("cars", cars);
     }
-    await clearCarsCache();
+    await clearRedisByPattern("cars*");
     return response.status(200).json({ success: true, car: updatedCar });
   } catch (error) {
     return response.status(500).json({

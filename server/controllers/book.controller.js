@@ -17,12 +17,12 @@ export const CreateBookingCar = async (request, response) => {
     endAt.setDate(endAt.getDate() + numberOfDay);
     const booking = await Booking.create({
       carId,
-      userId: request.user.id,
+      userId: request.user._id,
       startedAt,
       endAt,
       total,
     });
-    const userId = request.user.id;
+    const userId = request.user._id;
     const cacheKey = `user-bookings:${userId}`;
     const cached = await getRedis(cacheKey);
     if (cached) {
@@ -49,14 +49,14 @@ export const cancelBooking = async (request, response) => {
         message: "Booking not found",
       });
     }
-    if (booking.userId.toString() !== request.user.id) {
+    if (booking.userId.toString() !== request.user._id) {
       return response.status(403).json({
         message: "Not allowed",
       });
     }
     booking.status = "Cancelled";
     await booking.save();
-    const cacheKey = `user-bookings:${request.user.id}`;
+    const cacheKey = `user-bookings:${request.user._id}`;
     const cached = await getRedis(cacheKey);
     if (cached) {
       const updated = cached.map((b) =>
@@ -139,7 +139,7 @@ export const deleteBooking = async (request, response) => {
 };
 export const getUserBookings = async (request, response) => {
   try {
-    const userId = request.user.id;
+    const userId = request.user._id;
     const cacheKey = `user-bookings:${userId}`;
     const cached = await getRedis(cacheKey);
     if (cached) {

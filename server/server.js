@@ -9,6 +9,7 @@ import cookieParser from "cookie-parser";
 import authRoutes from "./routes/auth.route.js";
 import carRoutes from "./routes/car.route.js";
 import aiRoutes from "./routes/ai.route.js";
+import bookRoutes from './routes/book.route.js';
 import googleRoutes from "./routes/google.route.js";
 import connectToDB from "./config/connect.config.js";
 import passport from "./config/passport.config.js";
@@ -85,6 +86,7 @@ app.use((request, response, next) => {
 app.use(passport.initialize());
 app.use("/auth", authRoutes);
 app.use("/car", carRoutes);
+app.use('/book', bookRoutes);
 app.use(googleRoutes);
 app.use(aiRoutes);
 app.get("/protect-server", validateWhitelist({ body: [], query: [], params: [] }), (request, response) =>

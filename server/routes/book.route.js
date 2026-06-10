@@ -81,4 +81,40 @@ router.delete(
   verifyAdmin,
   deleteBooking,
 );
+
+router.post(
+  "/create-booking-checkout",
+  verifyToken("user"),
+  createBookingCheckout,
+);
+route.get("/booking-success", async (request, response) => {
+  try {
+    const { carId, days, userId } = request.query;
+
+    const car = await Car.findById(carId);
+
+    const startedAt = new Date();
+
+    const endAt = new Date(startedAt);
+
+    endAt.setDate(endAt.getDate() + Number(days));
+
+    const total = car.pricePerDay * Number(days);
+
+    const booking = await Booking.create({
+      carId,
+      userId,
+      startedAt,
+      endAt,
+      total,
+      status: "Confirmed",
+    });
+
+    return response.redirect(`${process.env.CLIENT_URL}/booking-success`);
+  } catch (error) {
+    return response.status(500).json({
+      message: error.message,
+    });
+  }
+});
 export default router;

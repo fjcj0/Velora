@@ -1,7 +1,7 @@
 import { Car } from "../models/car.model.js";
 import mongoose from "mongoose";
 import { uploadPicture, deletePicture } from "../utils/cloudinary.utils.js";
-import { deleteRedis, getRedis, setRedis } from "../utils/redis.utils.js";
+import { deleteRedis, getRedis, setRedis,clearRedisByPattern } from "../utils/redis.utils.js";
 import xss from "xss";
 export const createCar = async (request, response) => {
   try {
@@ -67,6 +67,7 @@ export const createCar = async (request, response) => {
     cars = cars ? cars : [];
     cars.push(result);
     await setRedis("cars", cars);
+    await clearRedisByPattern("cars*");
     return response.status(201).json({ success: true, car: result });
   } catch (error) {
     return response.status(500).json({
@@ -94,6 +95,7 @@ export const deleteCar = async (request, response) => {
       cars = cars.filter((car) => car._id.toString() !== id);
       await setRedis("cars", cars);
     }
+    await clearRedisByPattern("cars*");
     return response.status(200).json({ success: true, deletedCar });
   } catch (error) {
     return response.status(500).json({
@@ -109,14 +111,19 @@ export const getAllCar = async (request, response) => {
     let page = parseInt(request.query.page) || 1;
     let limit = parseInt(request.query.limit) || 10;
     let search = request.query.search || "";
+    const cacheKey = `cars:${page}:${limit}:${search}`;
+    const cachedCars = await getRedis(cacheKey);
+    if (cachedCars) {
+      return response.status(200).json(cachedCars);
+    }
     const skip = (page - 1) * limit;
     let query = {};
     if (search.trim()) {
       query = {
         $or: [
           { brand: { $regex: search, $options: "i" } },
-          { model: { $regex: search, $options: "i" } }
-        ]
+          { model: { $regex: search, $options: "i" } },
+        ],
       };
     }
     const cars = await Car.find(query)
@@ -124,20 +131,21 @@ export const getAllCar = async (request, response) => {
       .limit(limit)
       .sort({ createdAt: -1 });
     const totalCars = await Car.countDocuments(query);
-    const hasMore = page * limit < totalCars;
-    return response.status(200).json({
+    const result = {
       success: true,
       cars,
       page,
-      hasMore,
-      search: search || null
-    });
+      hasMore: page * limit < totalCars,
+      search: search || null,
+    };
+    await setRedis(cacheKey, result, 60);
+    return response.status(200).json(result);
   } catch (error) {
     return response.status(500).json({
       success: false,
       error: `Internal Server Error: ${
         error instanceof Error ? error.message : error
-      }`
+      }`,
     });
   }
 };
@@ -220,6 +228,7 @@ export const updateCar = async (request, response) => {
       );
       await setRedis("cars", cars);
     }
+    await clearRedisByPattern("cars*");
     return response.status(200).json({ success: true, car: updatedCar });
   } catch (error) {
     return response.status(500).json({

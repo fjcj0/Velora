@@ -41,6 +41,5 @@ router.delete(
   deleteBooking,
 );
 
-router.get("get-booking", getAllBooking);
-
+router.get("/get-booking-car", getAllBooking);
 export default router;

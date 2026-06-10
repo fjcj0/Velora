@@ -78,8 +78,12 @@ router.get(
   "/get-cars",
   validateWhitelist({
     body: {},
-    query: {},
-    params: {}
+    query: {
+      page: "number",
+      limit: "number",
+      search: "string",
+    },
+    params: {},
   }),
   verifyUser,
   getAllCar

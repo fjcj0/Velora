@@ -27,10 +27,16 @@ const userSchema = new mongoose.Schema({
     required: true,
     minlength: 6,
   },
-  profilePhoto: {
+profilePhoto: {
+  url: {
     type: String,
-    default: "/user.png",
+    default: "/user.png"
   },
+  public_id: {
+    type: String,
+    default: ""
+  }
+},
   bio: {
     type: String,
     maxlength: 100,

@@ -1,7 +1,10 @@
 declare type User = {
   name: string;
   username: string;
-  profilePhoto: string | null;
+  profilePhoto: {
+    url: string;
+    public_id: string;
+  };
   isAdmin: boolean;
   isVerified: boolean;
   bio: string | null;

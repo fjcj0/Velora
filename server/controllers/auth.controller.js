@@ -426,66 +426,118 @@ export const checkResetPasswordPage = async (request, response) => {
 };
 export const updateUser = async (request, response) => {
   try {
-    let name = xss(request.body.name || "");
-    let username = xss(request.body.username || "");
-    let bio = xss(request.body.bio || "");
+    const name = xss(request.body.name || "").trim();
+    const username = xss(request.body.username || "").trim();
+    const bio = xss(request.body.bio || "").trim();
+    if (!request.user || !request.user._id) {
+      return response.status(401).json({
+        success: false,
+        error: "Unauthorized"
+      });
+    }
     const updateFields = {};
-    if (name) updateFields.name = name;
-    if (username) updateFields.username = username;
-    if (bio) updateFields.bio = bio;
-    let updatedUser = await User.findByIdAndUpdate(request.user._id, { $set: updateFields }, { new: true, runValidators: true });
+    if (name) {
+      updateFields.name = name;
+    }
+    if (username) {
+      const existingUser = await User.findOne({
+        username,
+        _id: { $ne: request.user._id }
+      });
+      if (existingUser) {
+        return response.status(400).json({
+          success: false,
+          error: "Username already exists"
+        });
+      }
+      updateFields.username = username;
+    }
+    updateFields.bio = bio;
+    const updatedUser = await User.findByIdAndUpdate(
+      request.user._id,
+      {
+        $set: updateFields
+      },
+      {
+        returnDocument: "after",
+        runValidators: true
+      }
+    );
     if (!updatedUser) {
       return response.status(404).json({
         success: false,
         error: "User not found"
       });
     }
-    updatedUser = sanitizeUser(updatedUser);
-    await setRedis(request.user._id, updatedUser);
+    const sanitizedUser = sanitizeUser(updatedUser);
+    try {
+      await setRedis(request.user._id.toString(), sanitizedUser);
+    } catch (redisError) {
+      console.error("Redis Error:", redisError);
+    }
     return response.status(200).json({
       success: true,
       message: "User updated successfully",
-      user: updatedUser
+      user: sanitizedUser
     });
   } catch (error) {
+    if (error.code === 11000) {
+      return response.status(400).json({
+        success: false,
+        error: "Username already exists"
+      });
+    }
     return response.status(500).json({
       success: false,
-      error: `Internal Server Error: ${error instanceof Error ? error.message : error}`
+      error: error.message || "Internal Server Error"
     });
   }
 };
 export const updateProfilePhoto = async (request, response) => {
   try {
     if (!request.file) {
-      return response.status(400).json({ message: "No file provided" });
+      return response.status(400).json({
+        success: false,
+        error: "No file provided"
+      });
     }
     let user = await User.findById(request.user._id);
     if (!user) {
-      return response.status(404).json({ message: "User not found" });
+      return response.status(404).json({
+        success: false,
+        error: "User not found"
+      });
     }
     const result = await uploadPicture(request.file.buffer);
-    if (!result) {
+    if (!result?.url) {
       return response.status(400).json({
         success: false,
         error: "Failed to upload picture"
       });
     }
-    if (user.profilePhoto) {
-      await deletePicture(user.profilePhoto);
+    if (user.profilePhoto?.public_id) {
+      await deletePicture(user.profilePhoto.public_id);
     }
-    user.profilePhoto = result;
+    user.profilePhoto = {
+      url: result.url,
+      public_id: result.public_id
+    };
     await user.save();
-    user = sanitizeUser(user);
-    await setRedis(request.user._id, user);
+    const sanitizedUser = sanitizeUser(user);
+    try {
+      await setRedis(request.user._id.toString(), sanitizedUser);
+    } catch (err) {
+      console.error("Redis error:", err);
+    }
     return response.status(200).json({
       success: true,
-      message: "Your profile photo uploaded successfully",
-      user
+      message: "Profile photo updated successfully",
+      user: sanitizedUser
     });
   } catch (error) {
     return response.status(500).json({
       success: false,
-      error: `Internal Server Error: ${error instanceof Error ? error.message : error}`
+      error: error.message
     });
   }
 };

@@ -6,6 +6,11 @@ const endpoint = "/auth";
 const useUserStore = create<UserStore>((set) => ({
   user: null,
   isCheckingAuth: true,
+  //@ts-ignore
+  setUser: (user) =>
+    set({
+      user,
+    }),
   checkAuth: async () => {
     try {
       set({ isCheckingAuth: true });

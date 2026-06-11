@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
 import api from "../../utils/api.utils";
 import Spinner from "../../tools/Spinner";
+import { toast } from "sonner";
 type Car = {
     _id: string;
     image: string;
@@ -22,6 +23,7 @@ const BookingsPage = () => {
     const endpoint = "/book";
     const [isLoading, setIsLoading] = useState(false);
     const [bookings, setBookings] = useState<Booking[]>([]);
+    const [loadingCancel, setLoadingCancel] = useState<string | null>(null);
     useEffect(() => {
         const getBookings = async () => {
             setIsLoading(true);
@@ -38,6 +40,22 @@ const BookingsPage = () => {
         };
         getBookings();
     }, []);
+    const cancelBooking = async (id: string) => {
+    try {
+        setLoadingCancel(id);
+        const response = await api.put(`${endpoint}/cancel-booking/${id}`);
+        toast.success(response.data.message);
+        setBookings((prev) =>
+            prev.map((b) =>
+                b._id === id ? { ...b, status: "Rejected" } : b
+            )
+        );
+    } catch (error) {
+        toast.error(String(error));
+    } finally {
+        setLoadingCancel(null);
+    }
+};
     if (isLoading) return <Spinner />;
     return (
         <div className="p-4 font-nunito">
@@ -68,7 +86,13 @@ const BookingsPage = () => {
                                 {booking.status === "Pending" ? (
                                     <div className="flex flex-col items-center justify-center gap-y-3">
                                         <button className="w-[8rem] py-3 cursor-pointer border-1 rounded-xl hover:bg-black hover:border-black hover:text-white duration-300 border-gray-300">Pay Online</button>
-                                         <button className="w-[8rem] py-3 cursor-pointer border-1 rounded-xl hover:bg-black hover:border-black hover:text-white duration-300 border-gray-300">Cancel</button>
+<button
+    disabled={loadingCancel === booking._id}
+    onClick={() => cancelBooking(booking._id)}
+    className="w-[8rem] py-3 cursor-pointer border-1 rounded-xl hover:bg-black hover:border-black hover:text-white duration-300 border-gray-300 disabled:opacity-50"
+>
+    {loadingCancel === booking._id ? "Cancelling..." : "Cancel"}
+</button>
                                     </div>
                                 ) : booking.status === "Approved" ? (
                                     <span className="px-3 py-1 rounded-3xl text-xs bg-green-400/20 text-green-600">

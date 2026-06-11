@@ -2,7 +2,8 @@ import { stripe } from "../config/stripe.config.js";
 import { Booking } from "../models/book.model.js";
 export const createBookingCheckout = async (request, response) => {
   try {
-    const { id, userId } = request.body;
+    const { id } = request.body;
+    const userId = request.user?._id;
     if (!id || !userId) {
       return response.status(400).json({
         success: false,

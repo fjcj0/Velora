@@ -23,12 +23,7 @@ export const CreateBookingCar = async (request, response) => {
       total,
     });
     const userId = request.user._id;
-    const cacheKey = `user-bookings:${userId}`;
-    const cached = await getRedis(cacheKey);
-    if (cached) {
-      cached.unshift(booking);
-      await setRedis(cacheKey, cached, 300);
-    }
+    await clearRedisByPattern(`user-bookings:${userId}`);
     await clearRedisByPattern("all-bookings:*");
     return response.status(201).json({
       message: "Booking created successfully",
@@ -49,7 +44,7 @@ export const cancelBooking = async (request, response) => {
         message: "Booking not found",
       });
     }
-    if (booking.userId.toString() !== request.user._id) {
+    if (booking.userId.toString() !== request.user._id.toString()) {
       return response.status(403).json({
         message: "Not allowed",
       });
@@ -61,15 +56,15 @@ export const cancelBooking = async (request, response) => {
     if (cached) {
       const updated = cached.map((b) =>
         b._id.toString() === id
-          ? { ...b.toObject(), status: "Cancelled" }
+          ? { ...b, status: "Cancelled" }
           : b
       );
-      await setRedis(cacheKey, updated, 300);
+      await setRedis(cacheKey, updated, 60);
     }
     await clearRedisByPattern("all-bookings:*");
     return response.status(200).json({
       message: "Booking cancelled successfully",
-       booking,
+      booking,
     });
   } catch (error) {
     return response.status(500).json({
@@ -96,7 +91,7 @@ export const confirmBooking = async (request, response) => {
           ? { ...b.toObject(), status: "Confirmed" }
           : b
       );
-      await setRedis(cacheKey, updated, 300);
+      await setRedis(cacheKey, updated, 60);
     }
     await clearRedisByPattern("all-bookings:*");
     return response.status(200).json({
@@ -125,7 +120,7 @@ export const deleteBooking = async (request, response) => {
       const updated = cached.filter(
         (b) => b._id.toString() !== id
       );
-      await setRedis(cacheKey, updated, 300);
+      await setRedis(cacheKey, updated, 60);
     }
     await clearRedisByPattern("all-bookings:*");
     return response.status(200).json({
@@ -151,7 +146,7 @@ export const getUserBookings = async (request, response) => {
     const bookings = await Booking.find({ userId })
       .populate("carId")
       .sort({ createdAt: -1 });
-    await setRedis(cacheKey, bookings, 300);
+    await setRedis(cacheKey, bookings, 60);
     return response.status(200).json({
       user_bookings: bookings,
       source: "db",

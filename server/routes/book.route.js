@@ -12,6 +12,7 @@ import { verifyUser } from "../middleware/user.guard.js";
 import { validateWhitelist } from "../middleware/server.guard.js";
 import { Booking } from "../models/book.model.js";
 import { createBookingCheckout } from "../controllers/stripe.controller.js";
+import { getRedis, setRedis, clearRedisByPattern } from "../utils/redis.utils.js";
 const router = express.Router();
 router.post(
   "/create-booking-car",
@@ -85,6 +86,13 @@ router.delete(
 );
 router.post(
   "/create-booking-checkout",
+    validateWhitelist({
+      body: {
+      id: "string"
+    },
+    params: {},
+    query: {},
+  }),
   verifyUser,
   createBookingCheckout,
 );
@@ -102,6 +110,17 @@ router.get("/booking-success", async (request, response) => {
     }
     booking.status = "Confirmed";
     await booking.save();
+    const userCacheKey = `user-bookings:${userId}`;
+    const cached = await getRedis(userCacheKey);
+    if (cached) {
+      const updated = cached.map((b) =>
+        b._id.toString() === bookingId
+          ? { ...b.toObject?.() || b, status: "Confirmed" }
+          : b
+      );
+      await setRedis(userCacheKey, updated, 60);
+    }
+    await clearRedisByPattern("all-bookings:*");
     return response.redirect(
       `${process.env.CLIENT_URL}/bookings?success=true`
     );

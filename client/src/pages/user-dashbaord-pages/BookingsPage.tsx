@@ -2,6 +2,7 @@ import { useEffect, useState } from "react";
 import api from "../../utils/api.utils";
 import Spinner from "../../tools/Spinner";
 import { toast } from "sonner";
+import useUserStore from "../../store/auth.store";
 type Car = {
     _id: string;
     image: string;
@@ -14,12 +15,13 @@ type Booking = {
     startedAt: string;
     endAt: string;
     total: number;
-    status: "Pending" | "Approved" | "Rejected" | string;
+    status: "Pending" | "Confirmed" | "Rejected" | string;
 };
 type BookingsResponse = {
     user_bookings: Booking[];
 };
 const BookingsPage = () => {
+    const { user } = useUserStore();
     const endpoint = "/book";
     const [isLoading, setIsLoading] = useState(false);
     const [bookings, setBookings] = useState<Booking[]>([]);
@@ -55,6 +57,23 @@ const BookingsPage = () => {
     } finally {
         setLoadingCancel(null);
     }
+    };
+const payonline = async (id: string) => {
+    try {
+        setLoadingCancel(id); 
+        const response = await api.post(`${endpoint}/create-booking-checkout`, {
+            id,
+        });
+
+        if (response.data?.url) {
+            window.location.href = response.data.url;
+        }
+    } catch (error) {
+        console.log(error);
+        toast.error("Payment failed");
+    } finally {
+        setLoadingCancel(null);
+    }
 };
     if (isLoading) return <Spinner />;
     return (
@@ -65,7 +84,7 @@ const BookingsPage = () => {
                     bookings.map((booking) => (
                         <div
                             key={booking._id}
-                            className="flex items-center justify-between p-3 border rounded-lg"
+                            className={`flex items-center justify-between  border rounded-lg ${booking.status !== 'Pending' ? 'py-12 px-3' : 'p-3'}`}
                         >
                             <div className="flex items-center gap-3">
                                 <img
@@ -85,7 +104,12 @@ const BookingsPage = () => {
                             <div>
                                 {booking.status === "Pending" ? (
                                     <div className="flex flex-col items-center justify-center gap-y-3">
-                                        <button className="w-[8rem] py-3 cursor-pointer border-1 rounded-xl hover:bg-black hover:border-black hover:text-white duration-300 border-gray-300">Pay Online</button>
+                                        <button
+    onClick={() => payonline(booking._id)}
+    className="w-[8rem] py-3 cursor-pointer border-1 rounded-xl hover:bg-black hover:border-black hover:text-white duration-300 border-gray-300"
+>
+    Pay Online
+</button>
 <button
     disabled={loadingCancel === booking._id}
     onClick={() => cancelBooking(booking._id)}
@@ -94,7 +118,7 @@ const BookingsPage = () => {
     {loadingCancel === booking._id ? "Cancelling..." : "Cancel"}
 </button>
                                     </div>
-                                ) : booking.status === "Approved" ? (
+                                ) : booking.status === "Confirmed" ? (
                                     <span className="px-3 py-1 rounded-3xl text-xs bg-green-400/20 text-green-600">
                                         Approved
                                     </span>

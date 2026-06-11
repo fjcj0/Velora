@@ -96,6 +96,7 @@ Before responding:
 
 # OUTPUT FORMAT (VERY IMPORTANT)
 
+The output should not be md its normal JSON
 You MUST ALWAYS return valid JSON in ONE of these formats:
 
 ---

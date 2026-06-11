@@ -14,6 +14,12 @@ const useUserStore = create<UserStore>((set) => ({
         user: response.data.user,
       });
     } catch (error) {
+      if (axios.isAxiosError(error)) {
+        if (error.response?.status === 429) {
+          toast.error(error.response?.data?.error);
+          return;
+        }
+      }
       set({ user: null });
     } finally {
       set({ isCheckingAuth: false });

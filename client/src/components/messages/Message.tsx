@@ -26,7 +26,8 @@ const Message: React.FC<MessageType> = ({
         <img
           src={profilePic}
           alt="AI"
-          className="w-8 h-8 rounded-full mr-2 self-end"
+          className={`w-8 h-8 rounded-full self-end ${markdowns &&
+          markdowns.length > 0 ? 'mr-3' : ''}`}
         />
       )}
       <div className="flex flex-col gap-5 max-w-[70%]">
@@ -38,7 +39,7 @@ const Message: React.FC<MessageType> = ({
           <div
             className={`flex w-full max-md:items-start items-center justify-start gap-x-1.5 ${
               isAI ? "text-black/70" : ""
-            } duration-300 transition-all ease`}
+            } `}
           >
             {isAI && (
               <MessageCircle size={20} className="shrink-0 mt-0.5" />
@@ -51,13 +52,15 @@ const Message: React.FC<MessageType> = ({
           markdowns.map((car, idx) => (
             <div
               key={idx}
-              className="bg-black w-[22rem] md:hover:translate-x-7 duration-300 transition-all ease text-white rounded-2xl overflow-hidden"
+              className="bg-black w-[22rem] p-3 text-white rounded-2xl overflow-hidden"
             >
+              <div className="flex items-center justify-center">
               <img
                 src={car.image}
                 alt={car.model}
-                className="w-full h-[12rem] object-cover rounded-t-2xl"
-              />
+                className="w-[20rem] object-cover rounded-t-2xl"
+                />
+                            </div>
               <h1 className="text-sm p-3 mt-2 font-[400] flex items-center">
                 <Car className="inline mr-1" size={18} />
                 {car.brand} {car.model} ({car.year})
@@ -81,13 +84,10 @@ const Message: React.FC<MessageType> = ({
                   <Toolbox size={14} />
                   Transmission: {car.transmission}
                 </p>
-                <p className="mt-1 text-white/80 line-clamp-3">
-                  {car.description}
-                </p>
                 <div className="mt-4">
                   <Link
                     to={`/car/${car.id}`}
-                    className="font-[300] cursor-pointer px-7 py-3 border border-white text-white hover:bg-white hover:text-black duration-300 ease transition-all flex items-center justify-center gap-x-1 rounded-lg"
+                    className="font-[300] cursor-pointer px-7 py-3 border border-white text-white hover:bg-white hover:text-black flex items-center justify-center gap-x-1 rounded-lg"
                   >
                     Borrow
                     <ArrowRight size={13} />

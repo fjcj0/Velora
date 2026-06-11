@@ -37,6 +37,7 @@
     "rate-limiter-flexible": "^10.0.1",
     "redis": "^5.11.0",
     "streamifier": "^0.1.1",
+    "stripe": "^22.2.0",
     "xss": "^1.0.15",
     "zod": "^4.3.6"
   },

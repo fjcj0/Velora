@@ -1,8 +1,10 @@
 import { useState, useRef, useEffect } from "react";
 import Message from "../../components/messages/Message";
-import SpinnerAi from "../../components/spinners/SpinnerAi";
+
 import { ArrowUp } from "lucide-react";
 import api from "../../utils/api.utils";
+import SpinnerAi from "../../tools/SpinnerAi";
+
 const AiPage = () => {
   const [messages, setMessages] = useState<MessageType[]>([]);
   const [isLoading, setIsLoading] = useState<boolean>(false);
@@ -74,9 +76,13 @@ const AiPage = () => {
           />
         ))}
         {isLoading && (
-          <div className="flex items-center gap-x-1">
-            <img src="/logo.jpg" className="w-8 h-8 rounded-full" alt="" />
-            <SpinnerAi />
+          <div className="flex items-start justify-start gap-x-3 w-full">
+                <img
+          src={'logo.jpg'}
+          alt="AI"
+          className="w-8 h-8 rounded-full mr-2 self-end"
+        />
+            <SpinnerAi/>
           </div>
         )}
         <div ref={messagesEndRef} />

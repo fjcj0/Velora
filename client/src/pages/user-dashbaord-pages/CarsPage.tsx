@@ -2,9 +2,10 @@ import { useEffect, useRef, useState } from "react";
 import api from "../../utils/api.utils";
 import { Spinner } from "../../components/ui/spinner";
 import { motion } from "framer-motion";
-import { Fuel, Users, MapPin, Settings } from "lucide-react";
+import { Fuel, DollarSign, Car, ArrowRight } from "lucide-react";
 import { useNavigate } from "react-router-dom";
-type Car = {
+import BookingButton from "../../components/buttons/BookingButton";
+type CarType = {
   _id: string;
   image: string;
   brand: string;
@@ -23,7 +24,7 @@ type Car = {
 const CarsPage = () => {
   const navigate = useNavigate();
   const endpoint = "/car";
-  const [cars, setCars] = useState<Car[]>([]);
+  const [cars, setCars] = useState<CarType[]>([]);
   const [page, setPage] = useState<number>(1);
   const [search, setSearch] = useState<string>("");
   const [hasMore, setHasMore] = useState<boolean>(true);
@@ -122,72 +123,35 @@ const CarsPage = () => {
                   type: "spring",
                   stiffness: 100,
                 }}
-                className="border border-gray-300 rounded-2xl p-4 bg-white"
+                className="border border-gray-200 rounded-2xl p-4 bg-white relative"
               >
-                <div className="relative">
-                  <div className="absolute top-3 right-3 bg-green-100 text-green-700 px-4 py-1 rounded-full text-xs">
-                    {car.year}
-                  </div>
-                  <img
-                    src={car.image}
-                    alt={`${car.brand} ${car.model}`}
-                    loading="lazy"
-                    className="w-full h-52 object-contain"
+                <div className="flex items-center justify-center">
+                  <img src={car.image} alt="" />
+                </div>
+                <div className="absolute top-8 right-5 text-xs px-4 py-2 bg-black rounded-sm rotate-[30deg] flex items-center justify-center flex-col">
+                  <p className="text-gray-300 flex items-center justify-center gap-x-1">
+                    <Fuel size={14} />
+                    {car.brand}
+                  </p>
+                </div>
+                <div className="absolute top-8 left-5 text-xs px-4 py-2 bg-black rounded-sm rotate-[-30deg] flex items-center justify-center flex-col">
+                  <h1 className="font-light text-gray-300 flex items-center justify-center gap-x-1">
+                    <Car size={16} />
+                    {car.model}
+                  </h1>
+                </div>
+                <div className="w-full flex items-center justify-center gap-x-3">
+                  <p className="font-light flex items-center justify-center">
+                    {car.price} <DollarSign size={14} />
+                  </p>
+                  <BookingButton
+                    title="Book"
+                    Icon={ArrowRight}
+                    onClick={() => {
+                      navigate(`/car/${car._id}`);
+                    }}
+                    isLoading={false}
                   />
-                </div>
-                <div className="mt-4">
-                  <h3 className="text-xl font-bold">
-                    {car.brand} {car.model}
-                  </h3>
-                </div>
-                <div className="flex justify-between mt-4">
-                  <span className="px-3 py-1 bg-gray-100 rounded-full text-sm">
-                    {car.category}
-                  </span>
-                  <span
-                    className={`px-3 py-1 rounded-full text-sm ${
-                      car.available
-                        ? "bg-green-100 text-green-700"
-                        : "bg-red-100 text-red-700"
-                    }`}
-                  >
-                    {car.available
-                      ? `${car.quantity} Available`
-                      : "Not Available"}
-                  </span>
-                </div>
-                <div className="grid grid-cols-2 gap-4 mt-5 text-sm">
-                  <div className="flex items-center gap-2">
-                    <Fuel size={16} className="text-green-600" />
-                    <span>{car.fuel}</span>
-                  </div>
-                  <div className="flex items-center gap-2">
-                    <Users size={16} className="text-green-600" />
-                    <span>{car.capacity} Seats</span>
-                  </div>
-                  <div className="flex items-center gap-2">
-                    <Settings size={16} className="text-green-600" />
-                    <span>{car.transmission}</span>
-                  </div>
-                  <div className="flex items-center gap-2">
-                    <MapPin size={16} className="text-green-600" />
-                    <span>{car.location}</span>
-                  </div>
-                </div>
-                <p className="mt-4 text-sm text-gray-600 line-clamp-2">
-                  {car.description}
-                </p>
-                <div className="mt-5 border-t pt-4">
-                  <div className="flex items-center justify-between">
-                    <span className="text-2xl font-bold text-green-600">
-                      ${car.price}
-                    </span>
-                  </div>
-                  <button onClick={() => { 
-                    navigate(`/car/${car._id}`);
-                  }} className="w-full mt-4 h-10 rounded-lg border border-green-600 font-semibold hover:bg-green-600 hover:text-white transition-all duration-300 cursor-pointer">
-                    Rent Now
-                  </button>
                 </div>
               </motion.div>
             );

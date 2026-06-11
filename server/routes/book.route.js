@@ -10,6 +10,8 @@ import {
 import { verifyAdmin } from "../middleware/admin.guard.js";
 import { verifyUser } from "../middleware/user.guard.js";
 import { validateWhitelist } from "../middleware/server.guard.js";
+import { Booking } from "../models/book.model.js";
+import { createBookingCheckout } from "../controllers/stripe.controller.js";
 const router = express.Router();
 router.post(
   "/create-booking-car",
@@ -81,4 +83,32 @@ router.delete(
   verifyAdmin,
   deleteBooking,
 );
+router.post(
+  "/create-booking-checkout",
+  verifyUser,
+  createBookingCheckout,
+);
+router.get("/booking-success", async (request, response) => {
+  try {
+    const { bookingId, userId } = request.query;
+    const booking = await Booking.findOne({
+      _id: bookingId,
+      userId,
+    });
+    if (!booking) {
+      return response.status(404).json({
+        message: "Booking not found",
+      });
+    }
+    booking.status = "Confirmed";
+    await booking.save();
+    return response.redirect(
+      `${process.env.CLIENT_URL}/bookings?success=true`
+    );
+  } catch (error) {
+    return response.status(500).json({
+      message: error.message,
+    });
+  }
+});
 export default router;

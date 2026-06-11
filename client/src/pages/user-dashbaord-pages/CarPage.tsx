@@ -83,63 +83,8 @@ const borrow = async () => {
     );
   }
   return (
-    <div className="p-6 max-w-4xl mx-auto font-poppins">
-      <h1 className="text-3xl font-bold mb-6">Car Details</h1>
-      <div className="bg-white shadow-lg rounded-xl overflow-hidden">
-        <img
-          src={car.image}
-          alt={`${car.brand} ${car.model}`}
-          className="w-full h-72 object-cover"
-        />
-        <div className="p-6 space-y-3">
-          <h2 className="text-2xl font-bold">
-            {car.brand} {car.model}
-          </h2>
-          <p><span className="font-semibold">Year:</span> {car.year}</p>
-          <p><span className="font-semibold">Price:</span> ${car.price}</p>
-          <p><span className="font-semibold">Category:</span> {car.category}</p>
-          <p><span className="font-semibold">Fuel:</span> {car.fuel}</p>
-          <p><span className="font-semibold">Transmission:</span> {car.transmission}</p>
-          <p><span className="font-semibold">Capacity:</span> {car.capacity}</p>
-          <p><span className="font-semibold">Location:</span> {car.location}</p>
-          <p className="text-gray-600 mt-4">{car.description}</p>
-          <div className="mt-4">
-            <span
-              className={`px-3 py-1 rounded-full text-white ${
-                car.available ? "bg-green-500" : "bg-red-500"
-              }`}
-            >
-              {car.available ? "Available" : "Not Available"}
-            </span>
-                  </div>
-        <div className="mt-6 flex items-center gap-4">
-  <span className="font-semibold">Rental Days:</span>
+    <div>
 
-  <div className="flex items-center gap-3">
-    <button
-      onClick={() => setDays((prev) => (prev > 1 ? prev - 1 : 1))}
-      className="bg-gray-300 px-3 py-1 rounded-md text-xl"
-    >
-      -
-    </button>
-    <span className="text-lg font-bold">{days}</span>
-    <button
-      onClick={() => setDays((prev) => prev + 1)}
-      className="bg-gray-300 px-3 py-1 rounded-md text-xl"
-    >
-      +
-    </button>
-  </div>
-</div>
-        <button
-  onClick={borrow}
-  disabled={bookingLoading}
-  className="bg-green-600 p-3 text-white rounded-md mt-4 disabled:opacity-50"
->
-  {bookingLoading ? "Booking..." : `Book for ${days} days`}
-</button>
-        </div>
-          </div>
     </div>
   );
 };

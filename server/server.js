@@ -35,7 +35,7 @@ const __dirname = path.resolve();
   }
 })();
 const app = express();
-app.set("trust proxy", false);
+app.set("trust proxy", process.env.NODE_ENV === "production");
 app.disable("x-powered-by");
 morgan.token("client-ip", (request) => request.ip);
 app.use(

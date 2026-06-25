@@ -36,7 +36,7 @@ const __dirname = path.resolve();
 })();
 const app = express();
 app.disable("x-powered-by");
-morgan.token("client-ip", (request) => request.headers["x-forwarded-for"] || request.ip);
+morgan.token("client-ip", (request) => request.headers["x-forwarded-for"]?.split(",")[0].trim() ||  request.socket.remoteAddress || request.ip);
 app.use(
   morgan("➜ :method :url :status :response-time ms - :res[content-length] - :client-ip")
 );
@@ -54,7 +54,7 @@ app.use(
   helmet.contentSecurityPolicy({
     directives: {
       defaultSrc: ["'self'"],
-      connectSrc: ["'self'", "http://localhost:5173"],
+      connectSrc: ["'self'", process.env.SERVER_URL],
       scriptSrc: ["'self'"],
       styleSrc: ["'self'", "'unsafe-inline'"],
       imgSrc: ["'self'", "data:", "https:"],
@@ -65,7 +65,7 @@ app.use(
 );
 app.use(
   cors({
-    origin: "http://localhost:5173",
+    origin: process.env.CLIENT_URL,
     credentials: true,
     methods: ["GET", "POST", "PUT", "DELETE", "PATCH", "OPTIONS"]
   })

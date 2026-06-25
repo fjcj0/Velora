@@ -25,6 +25,8 @@ import {
 import { csrf } from "./controllers/csrf.controller.js";
 import { preventDuplicateWrites } from "./middleware/tokenbucket.guard.js";
 import { connectToRedis } from "./config/redis.config.js";
+import path from 'path';
+const __dirname = path.resolve();
 (async () => {
   try {
     await connectToRedis();
@@ -97,6 +99,12 @@ app.get("/cron", validateWhitelist({ body: [], query: [], params: [] }), (reques
 );
 app.get("/csrf-token", validateWhitelist({ body: [], query: [], params: [] }), csrf);
 if (process.env.NODE_ENV === "production") job.start();
+if (process.env.NODE_ENV === "production") {
+  app.use(express.static(path.join(__dirname, "client", "dist")));
+  app.get("*", (req, res) => {
+    res.sendFile(path.join(__dirname, "client", "dist", "index.html"));
+  });
+}
 connectToDB()
   .then(() => {
     app.listen(process.env.PORT, () => {

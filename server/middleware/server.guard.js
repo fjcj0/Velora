@@ -1,5 +1,6 @@
 import xss from "xss";
 import rateLimit from "express-rate-limit";
+import crypto from 'crypto';
 import slowDown from "express-slow-down";
 export const buildFingerprint = (request) => {
   const ip = request.headers["x-forwarded-for"]?.split(",")[0].trim() ||  request.socket.remoteAddress || request.ip;

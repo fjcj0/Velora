@@ -122,7 +122,6 @@ const allowedBrowsers = [
   /Edg/i,
   /OPR/i,
   /Safari/i,
-  /PostmanRuntime/i,
 ];
 export const browserOnly = (request, response, next) => {
   const userAgent = xss(request.headers["user-agent"] || "");

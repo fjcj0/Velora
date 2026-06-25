@@ -1,4 +1,5 @@
 import { RateLimiterMemory } from "rate-limiter-flexible";
+import { buildFingerprint } from "./server.guard.js";
 const writeLimiter = new RateLimiterMemory({
   points: 1,     
   duration: 4
@@ -9,14 +10,14 @@ export const preventDuplicateWrites = async (request, response, next) => {
     return next();
   }
   try {
-    const key = `${request.ip}:${request.method}:${request.originalUrl}`;
-    console.log(key);
+    const fingerprint = buildFingerprint(request);
+    const key = `${fingerprint}:${request.method}:${request.originalUrl}`;
     await writeLimiter.consume(key);
     next();
   } catch {
     return response.status(429).json({
-       success: false,
-       error: "Please wait before sending another request",
+      success: false,
+      error: "Please wait before sending another request",
     });
   }
 };

@@ -1,6 +1,14 @@
 import xss from "xss";
-import rateLimit, { ipKeyGenerator } from "express-rate-limit";
+import rateLimit from "express-rate-limit";
 import slowDown from "express-slow-down";
+export const buildFingerprint = (request) => {
+  const ip = request.headers["x-forwarded-for"]?.split(",")[0].trim() ||  request.socket.remoteAddress || request.ip;
+  const userAgent = request.headers["user-agent"] || "";
+  const accept = request.headers["accept"] || "";
+  const lang = request.headers["accept-language"] || "";
+  const raw = `${ip}:${userAgent}:${accept}:${lang}`;
+  return crypto.createHash("sha256").update(raw).digest("hex");
+};
 export const validateWhitelist = (
   schema = {
     body: {},
@@ -96,12 +104,7 @@ export const rateLimiter = rateLimit({
   max: 100,
   standardHeaders: true,
   legacyHeaders: false,
-  keyGenerator: (request) => {
-    const ipPart = ipKeyGenerator(request);
-    return `${ipPart}`;
-  },
-  skipSuccessfulRequests: false,
-  skipFailedRequests: false,
+  keyGenerator: (request) => buildFingerprint(request),
   message: {
     success: false,
     message: "Too many requests",
@@ -111,6 +114,7 @@ export const speedLimiter = slowDown({
   windowMs: 15 * 60 * 1000,
   delayAfter: 50,
   delayMs: () => 500,
+  keyGenerator: (request) => buildFingerprint(request),
 });
 const allowedBrowsers = [
   /Chrome/i,

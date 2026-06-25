@@ -37,9 +37,17 @@ const __dirname = path.resolve();
 const app = express();
 app.disable("x-powered-by");
 app.set('trust proxy', 1);
+morgan.token("proxies", (req) => {
+  const xff = req.headers["x-forwarded-for"];
+  if (!xff) return "NULL";
+  return xff
+    .split(",")
+    .map(ip => ip.trim())
+    .join(" -> ");
+});
 morgan.token("client-ip", (request) => `${request.headers["x-forwarded-for"]?.split(",")[0].trim() || "NULL"}|${request.socket.remoteAddress || "NULL"}|${request.ip || "NULL"}`);
 app.use(
-  morgan("➜ :method :url :status :response-time ms - :res[content-length] - :client-ip")
+  morgan("➜ :method :url :status :response-time ms - :res[content-length] - :client-ip - proxies: :proxies")
 );
 app.use(
   helmet({

@@ -37,7 +37,7 @@ const __dirname = path.resolve();
 const app = express();
 app.disable("x-powered-by");
 app.set('trust proxy', 1);
-morgan.token("client-ip", (request) => `${request.headers["x-forwarded-for"]?.split(",")[0].trim() || "NULL"}:${request.socket.remoteAddress || "NULL"}:${request.ip || "NULL"}`);
+morgan.token("client-ip", (request) => `${request.headers["x-forwarded-for"]?.split(",")[0].trim() || "NULL"}|${request.socket.remoteAddress || "NULL"}|${request.ip || "NULL"}`);
 app.use(
   morgan("➜ :method :url :status :response-time ms - :res[content-length] - :client-ip")
 );

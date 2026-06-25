@@ -3,7 +3,7 @@ import rateLimit from "express-rate-limit";
 import crypto from 'crypto';
 import slowDown from "express-slow-down";
 export const buildFingerprint = (request) => {
-  const ip = request.headers["x-forwarded-for"]?.split(",")[0].trim() ||  request.socket.remoteAddress || request.ip;
+  const ip = request.headers["cf-connecting-ip"] || request.headers["x-forwarded-for"]?.split(",")[0].trim() ||  request.socket.remoteAddress || request.ip;
   const userAgent = request.headers["user-agent"] || "";
   const accept = request.headers["accept"] || "";
   const lang = request.headers["accept-language"] || "";
